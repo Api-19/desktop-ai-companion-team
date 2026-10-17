@@ -297,7 +297,7 @@ def test_page_export_builder(tmp_path, monkeypatch, capsys):
               f"{json.dumps(claims, ensure_ascii=False)}));\n")
     (tmp_path / "export.js").write_text(script, encoding="utf-8")
     output = subprocess.run([node, str(tmp_path / "export.js")], capture_output=True,
-                            text=True, check=True).stdout
+                            text=True, encoding="utf-8", check=True).stdout
     assert json.loads(output) == {
         "version": 1, "group": "a", "manifest_sha256": "c" * 64,
         "notes": {"1": "先讲道理了", "3": "语气太正式"},
