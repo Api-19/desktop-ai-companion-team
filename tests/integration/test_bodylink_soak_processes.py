@@ -5,6 +5,7 @@ import hashlib
 import json
 import os
 import signal
+import sys
 import threading
 
 import pytest
@@ -13,6 +14,10 @@ from scripts import bodylink_soak as soak_cli
 from scripts import bodylink_soak_check as checker
 from scripts import bodylink_soak_faults as faults
 from scripts import bodylink_soak_support as soak
+
+pytestmark = pytest.mark.skipif(
+    sys.platform != "darwin", reason="macOS-only soak process supervisor"
+)
 
 
 def _thread_checked_worker(spec, channel):

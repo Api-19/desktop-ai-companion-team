@@ -16,6 +16,8 @@ from scripts import bodylink_soak_support as soak
 
 @pytest.fixture(scope="module")
 def report():
+    if sys.platform != "darwin":
+        pytest.skip("macOS-only soak process supervisor")
     return soak.run_soak(soak.RunConfig(1.1, 30, "synthetic answer"))
 
 
@@ -229,6 +231,7 @@ def test_other_platforms_fail_before_tempdir_or_worker(tmp_path, monkeypatch, pl
         soak.run_soak(soak.RunConfig(1, 30, "answer"))
 
 
+@pytest.mark.skipif(sys.platform != "darwin", reason="macOS-only soak process supervisor")
 def test_cli_real_script_entry(tmp_path):
     result = subprocess.run(
         [sys.executable, "scripts/bodylink_soak.py", *_args(tmp_path)],
@@ -242,6 +245,8 @@ def test_cli_real_script_entry(tmp_path):
 
 
 def test_cli_interrupt_handler_only_sets_event(tmp_path, monkeypatch):
+    # Validate the supported-platform branch with a mocked runtime.
+    monkeypatch.setattr(sys, "platform", "darwin")
     def interrupted(config, *, stop_requested):
         signal.raise_signal(signal.SIGTERM)
         assert stop_requested.is_set()
@@ -325,6 +330,8 @@ def test_parent_io_failure_uses_fixed_argument_error(tmp_path, monkeypatch, caps
 
 
 def test_faults_choice_reaches_run_config(tmp_path, monkeypatch):
+    # Validate the supported-platform branch with a mocked runtime.
+    monkeypatch.setattr(sys, "platform", "darwin")
     seen = []
 
     def run(config, **kwargs):
@@ -337,6 +344,8 @@ def test_faults_choice_reaches_run_config(tmp_path, monkeypatch):
 
 
 def test_default_duration_is_two_hours_without_running_it(tmp_path, monkeypatch):
+    # Validate the supported-platform branch with a mocked runtime.
+    monkeypatch.setattr(sys, "platform", "darwin")
     seen = []
 
     def run(config, **kwargs):
@@ -377,6 +386,8 @@ def test_baseline_duration_must_be_explicit(tmp_path, monkeypatch):
 
 
 def test_baseline_collects_without_generating_limits(monkeypatch):
+    # Validate the supported-platform branch with a mocked runtime.
+    monkeypatch.setattr(sys, "platform", "darwin")
     from scripts.bodylink_soak_resources import ResourceSample
 
     class Clock:
@@ -441,6 +452,7 @@ def test_baseline_collects_without_generating_limits(monkeypatch):
     )
 
 
+@pytest.mark.skipif(sys.platform != "darwin", reason="macOS-only soak process supervisor")
 def test_limits_digest_is_bound_before_workers_start(tmp_path, monkeypatch):
     import hashlib
 
@@ -546,6 +558,8 @@ def test_all_real_run_tests_use_explicit_short_duration():
 def test_valid_resource_cli_config_without_real_baseline(
     tmp_path, monkeypatch, scenario, duration, warmup
 ):
+    # Validate the supported-platform branch with a mocked runtime.
+    monkeypatch.setattr(sys, "platform", "darwin")
     seen = []
 
     def run(config, **kwargs):

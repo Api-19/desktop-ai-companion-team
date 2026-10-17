@@ -1,6 +1,7 @@
 import json
 import os
 import subprocess
+import sys
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from types import SimpleNamespace
@@ -64,7 +65,7 @@ def test_terminal_cli_counts_and_private_outputs(tmp_path, inputs, with_veiled):
     veiled_args = (["--veiled", str(ROOT / "config/privacy/veiled_terms.json")]
                    if with_veiled else [])
     result = subprocess.run(
-        [str(ROOT / ".venv/bin/python"), str(SCRIPT), *args(inputs, out), *veiled_args],
+        [sys.executable, str(SCRIPT), *args(inputs, out), *veiled_args],
         cwd=ROOT, env=environ, capture_output=True, text=True,
     )
     assert result.returncode == 0, result.stdout + result.stderr

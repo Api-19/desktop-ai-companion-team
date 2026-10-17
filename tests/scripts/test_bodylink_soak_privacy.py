@@ -119,6 +119,7 @@ def _guarded_worker(spec, channel):
     soak.worker_main(spec, channel)
 
 
+@pytest.mark.skipif(sys.platform != "darwin", reason="macOS-only soak process supervisor")
 def test_workers_never_load_models_devices_settings_or_provider(monkeypatch):
     monkeypatch.setattr(soak, "worker_main", _guarded_worker)
     report = soak.run_soak(soak.RunConfig(0.4, 30, REPLY))
@@ -140,6 +141,7 @@ def _error_worker(spec, channel):
     soak.worker_main(spec, channel)
 
 
+@pytest.mark.skipif(sys.platform != "darwin", reason="macOS-only soak process supervisor")
 def test_events_report_and_console_contain_no_payload(tmp_path, monkeypatch, capfd):
     report = soak.run_soak(soak.RunConfig(0.4, 30, REPLY))
     assert report["run_complete"]

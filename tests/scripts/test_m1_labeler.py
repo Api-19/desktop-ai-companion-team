@@ -4,6 +4,7 @@
 import hashlib
 import json
 import stat
+import sys
 from datetime import UTC, datetime
 from decimal import Decimal
 from pathlib import Path
@@ -331,7 +332,7 @@ def test_executable_cli_without_real(tmp_path):
 
     root = Path(__file__).resolve().parents[2]
     result = subprocess.run(
-        [str(root / ".venv/bin/python"), str(root / "scripts/m1_labeler.py"),
+        [sys.executable, str(root / "scripts/m1_labeler.py"),
          "--tasks", str(tmp_path / "missing.json"), "--round", "test",
          "--gold", str(tmp_path / "missing-gold.json"), "--out-dir", str(tmp_path)],
         capture_output=True, text=True, check=False, cwd=tmp_path,

@@ -5,6 +5,7 @@ import dataclasses
 import hashlib
 import json
 import os
+import sys
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -49,6 +50,7 @@ def test_native_resource_structures_match_macos_abi():
         sample.at_s = 2.0
 
 
+@pytest.mark.skipif(sys.platform != "darwin", reason="macOS libproc resource counters")
 def test_native_self_sample_has_current_rss_threads_and_fds():
     sample = resources.sample_self_resources()
     assert sample.at_s > 0

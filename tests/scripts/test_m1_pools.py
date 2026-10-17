@@ -2,6 +2,7 @@ import json
 import os
 import stat
 import subprocess
+import sys
 from datetime import UTC, datetime, timedelta, timezone
 from pathlib import Path
 from types import SimpleNamespace
@@ -432,7 +433,7 @@ def test_manifest_permissions_counts_and_no_text_in_terminal_cli(tmp_path):
                if not key.startswith("COMPANION_") and key != "PYTHONPATH"}
     environ["COMPANION_PRIVATE_DATA_DIR"] = str(tmp_path / "private")
     result = subprocess.run([
-        str(ROOT / ".venv/bin/python"), str(ROOT / "scripts/m1_pools.py"),
+        sys.executable, str(ROOT / "scripts/m1_pools.py"),
         "--library", str(library), "--holdout", str(holdout), "--timeline", str(timeline),
         "--out-dir", str(out),
     ], cwd=ROOT, env=environ, capture_output=True, text=True)
