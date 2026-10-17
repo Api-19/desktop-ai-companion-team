@@ -36,7 +36,7 @@ env PYTHONPATH=src .venv/bin/python -m pytest -q tests
 
 ## 团队协作
 
-先读 [技术路线 v2 与实现进度](docs/TECHNICAL_ROUTE_V2.md) 和 [可派发任务](docs/TEAM_TASKS.md)。
+先读 [技术路线 v2 与实现进度](docs/TECHNICAL_ROUTE_V2.md)、[同步状态](docs/SYNC_STATUS.md) 和 [可派发任务](docs/TEAM_TASKS.md)。
 
 按 [协作与数据边界](docs/COLLABORATION.md) 分配任务，通过分支和 Pull Request 提交代码。
 
