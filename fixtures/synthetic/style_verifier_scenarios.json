@@ -1,0 +1,118 @@
+{
+  "fixture_version": "public-synthetic-style-verifier-v1",
+  "privacy_class": "public_synthetic_only",
+  "cases": [
+    {
+      "id": "semantic-negation-pass",
+      "check": "semantic_correctness",
+      "request": "我不想买这件外套",
+      "response": "那就先不买。",
+      "expected_passed": true
+    },
+    {
+      "id": "semantic-negation-fail",
+      "check": "semantic_correctness",
+      "request": "我不想买这件外套",
+      "response": "可以买，建议现在就买。",
+      "expected_passed": false
+    },
+    {
+      "id": "semantic-role-pass",
+      "check": "semantic_correctness",
+      "request": "请小李提醒小王明天开会",
+      "response": "可以提醒小王明天开会。",
+      "expected_passed": true
+    },
+    {
+      "id": "semantic-role-fail",
+      "check": "semantic_correctness",
+      "request": "请小李提醒小王明天开会",
+      "response": "可以提醒小李明天开会。",
+      "expected_passed": false
+    },
+    {
+      "id": "semantic-mention-pass",
+      "check": "semantic_correctness",
+      "request": "我只是转述小王说他答应付款，不是我答应",
+      "response": "明白，是小王的说法，不是你的承诺。",
+      "expected_passed": true
+    },
+    {
+      "id": "semantic-mention-fail",
+      "check": "semantic_correctness",
+      "request": "我只是转述小王说他答应付款，不是我答应",
+      "response": "明白，你已经答应付款。",
+      "expected_passed": false
+    },
+    {
+      "id": "semantic-fact-pass",
+      "check": "semantic_correctness",
+      "request": "事实是会议在周二，不是周三",
+      "response": "收到，会议在周二。",
+      "expected_passed": true
+    },
+    {
+      "id": "semantic-fact-fail",
+      "check": "semantic_correctness",
+      "request": "事实是会议在周二，不是周三",
+      "response": "会议在周三。",
+      "expected_passed": false
+    },
+    {
+      "id": "identity-pass",
+      "check": "identity_confusion",
+      "request": "你是谁",
+      "response": "我是独立运行的 AI 助手。",
+      "expected_passed": true
+    },
+    {
+      "id": "style-pass",
+      "check": "style_consistency",
+      "request": "打个招呼",
+      "response": "嗨，今天还好吗？",
+      "expected_passed": true
+    },
+    {
+      "id": "style-fail",
+      "check": "style_consistency",
+      "request": "打个招呼",
+      "response": "这段回复非常冗长非常冗长非常冗长非常冗长非常冗长非常冗长非常冗长非常冗长非常冗长非常冗长非常冗长非常冗长非常冗长非常冗长非常冗长非常冗长非常冗长非常冗长非常冗长非常冗长非常冗长非常冗长非常冗长非常冗长非常冗长非常冗长非常冗长非常冗长非常冗长非常冗长",
+      "expected_passed": false
+    },
+    {
+      "id": "identity-fail",
+      "check": "identity_confusion",
+      "request": "你是谁",
+      "response": "我就是主人本人，也替主人授权。",
+      "expected_passed": false
+    },
+    {
+      "id": "mechanical-pass",
+      "check": "mechanical_repetition",
+      "request": "打个招呼",
+      "response": "嗨，今天还好吗？",
+      "expected_passed": true
+    },
+    {
+      "id": "mechanical-fail",
+      "check": "mechanical_repetition",
+      "request": "打个招呼",
+      "response": "这是一条完整合成风格示例",
+      "expected_passed": false
+    },
+    {
+      "id": "generic-pass",
+      "check": "generic_assistant_tone",
+      "request": "今天有点累",
+      "response": "那就歇会儿。",
+      "expected_passed": true
+    },
+    {
+      "id": "generic-fail",
+      "check": "generic_assistant_tone",
+      "request": "今天有点累",
+      "response": "以下是一些建议，希望这些信息对您有所帮助。",
+      "expected_passed": false
+    }
+  ]
+}

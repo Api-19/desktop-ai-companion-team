@@ -1,0 +1,174 @@
+{
+  "calibration_version": "public-synthetic-pragmatics-v1",
+  "calibration_cases": [
+    {"case_id": "greeting-1", "rule_id": "speech-greeting-v1", "text": "你好", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "greeting-2", "rule_id": "speech-greeting-v1", "text": "早上好", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "greeting-3", "rule_id": "speech-greeting-v1", "text": "晚上好", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "greeting-4", "rule_id": "speech-greeting-v1", "text": "哈喽", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "greeting-5", "rule_id": "speech-greeting-v1", "text": "今天忙完了", "recent_context": [], "idle_seconds": null, "expected_emitted": false},
+
+    {"case_id": "question-1", "rule_id": "speech-question-v1", "text": "可以吗?", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "question-2", "rule_id": "speech-question-v1", "text": "可以吗？", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "question-3", "rule_id": "speech-question-v1", "text": "你好?", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "question-4", "rule_id": "speech-question-v1", "text": "今天很好", "recent_context": [], "idle_seconds": null, "expected_emitted": false},
+    {"case_id": "question-5", "rule_id": "speech-question-v1", "text": "不用问我", "recent_context": [], "idle_seconds": null, "expected_emitted": false},
+
+    {"case_id": "request-1", "rule_id": "speech-request-v1", "text": "请帮我", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "request-2", "rule_id": "speech-request-v1", "text": "帮我看看", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "request-3", "rule_id": "speech-request-v1", "text": "陪陪我", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "request-4", "rule_id": "speech-request-v1", "text": "麻烦看下", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "request-5", "rule_id": "speech-request-v1", "text": "不用陪陪我", "recent_context": [], "idle_seconds": null, "expected_emitted": false},
+
+    {"case_id": "gratitude-1", "rule_id": "speech-gratitude-v1", "text": "谢谢", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "gratitude-2", "rule_id": "speech-gratitude-v1", "text": "谢啦", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "gratitude-3", "rule_id": "speech-gratitude-v1", "text": "真的谢谢", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "gratitude-4", "rule_id": "speech-gratitude-v1", "text": "不用谢", "recent_context": [], "idle_seconds": null, "expected_emitted": false},
+    {"case_id": "gratitude-5", "rule_id": "speech-gratitude-v1", "text": "今天不错", "recent_context": [], "idle_seconds": null, "expected_emitted": false},
+
+    {"case_id": "apology-1", "rule_id": "speech-apology-v1", "text": "对不起", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "apology-2", "rule_id": "speech-apology-v1", "text": "抱歉", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "apology-3", "rule_id": "speech-apology-v1", "text": "真的抱歉", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "apology-4", "rule_id": "speech-apology-v1", "text": "不用道歉", "recent_context": [], "idle_seconds": null, "expected_emitted": false},
+    {"case_id": "apology-5", "rule_id": "speech-apology-v1", "text": "没关系", "recent_context": [], "idle_seconds": null, "expected_emitted": false},
+
+    {"case_id": "farewell-1", "rule_id": "speech-farewell-v1", "text": "晚安", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "farewell-2", "rule_id": "speech-farewell-v1", "text": "再见", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "farewell-3", "rule_id": "speech-farewell-v1", "text": "先说晚安", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "farewell-4", "rule_id": "speech-farewell-v1", "text": "不晚安", "recent_context": [], "idle_seconds": null, "expected_emitted": false},
+    {"case_id": "farewell-5", "rule_id": "speech-farewell-v1", "text": "继续聊", "recent_context": [], "idle_seconds": null, "expected_emitted": false},
+
+    {"case_id": "joy-1", "rule_id": "affect-joy-v1", "text": "我很开心", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "joy-2", "rule_id": "affect-joy-v1", "text": "我很高兴", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "joy-3", "rule_id": "affect-joy-v1", "text": "今天好开心", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "joy-4", "rule_id": "affect-joy-v1", "text": "我很快乐", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "joy-5", "rule_id": "affect-joy-v1", "text": "我今天不开心", "recent_context": [], "idle_seconds": null, "expected_emitted": false},
+
+    {"case_id": "sadness-1", "rule_id": "affect-sadness-v1", "text": "我很难过", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "sadness-2", "rule_id": "affect-sadness-v1", "text": "我很伤心", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "sadness-3", "rule_id": "affect-sadness-v1", "text": "有点难过", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "sadness-4", "rule_id": "affect-sadness-v1", "text": "我不难过", "recent_context": [], "idle_seconds": null, "expected_emitted": false},
+    {"case_id": "sadness-5", "rule_id": "affect-sadness-v1", "text": "我很开心", "recent_context": [], "idle_seconds": null, "expected_emitted": false},
+
+    {"case_id": "fatigue-1", "rule_id": "affect-fatigue-v1", "text": "我有点累", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "fatigue-2", "rule_id": "affect-fatigue-v1", "text": "我好累", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "fatigue-3", "rule_id": "affect-fatigue-v1", "text": "我很疲惫", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "fatigue-4", "rule_id": "affect-fatigue-v1", "text": "我乏了", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "fatigue-5", "rule_id": "affect-fatigue-v1", "text": "我不累", "recent_context": [], "idle_seconds": null, "expected_emitted": false},
+
+    {"case_id": "worry-1", "rule_id": "affect-worry-v1", "text": "我担心", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "worry-2", "rule_id": "affect-worry-v1", "text": "我害怕", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "worry-3", "rule_id": "affect-worry-v1", "text": "真的我担心", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "worry-4", "rule_id": "affect-worry-v1", "text": "我有点慌", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "worry-5", "rule_id": "affect-worry-v1", "text": "我不担心", "recent_context": [], "idle_seconds": null, "expected_emitted": false},
+
+    {"case_id": "affection-1", "rule_id": "affect-affection-v1", "text": "想你", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "affection-2", "rule_id": "affect-affection-v1", "text": "爱你", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "affection-3", "rule_id": "affect-affection-v1", "text": "真的想你", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "affection-4", "rule_id": "affect-affection-v1", "text": "我不想你", "recent_context": [], "idle_seconds": null, "expected_emitted": false},
+    {"case_id": "affection-5", "rule_id": "affect-affection-v1", "text": "今天天气好", "recent_context": [], "idle_seconds": null, "expected_emitted": false},
+
+    {"case_id": "affiliative-1", "rule_id": "relationship-affiliative-v1", "text": "谢谢你", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "affiliative-2", "rule_id": "relationship-affiliative-v1", "text": "谢啦", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "affiliative-3", "rule_id": "relationship-affiliative-v1", "text": "真的谢谢你", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "affiliative-4", "rule_id": "relationship-affiliative-v1", "text": "多谢你", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "affiliative-5", "rule_id": "relationship-affiliative-v1", "text": "不用谢", "recent_context": [], "idle_seconds": null, "expected_emitted": false},
+
+    {"case_id": "support-1", "rule_id": "relationship-support-seeking-v1", "text": "陪陪我", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "support-2", "rule_id": "relationship-support-seeking-v1", "text": "安慰我", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "support-3", "rule_id": "relationship-support-seeking-v1", "text": "请陪陪我", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "support-4", "rule_id": "relationship-support-seeking-v1", "text": "支持我一下", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "support-5", "rule_id": "relationship-support-seeking-v1", "text": "不用陪陪我", "recent_context": [], "idle_seconds": null, "expected_emitted": false},
+
+    {"case_id": "care-1", "rule_id": "relationship-care-giving-v1", "text": "早点休息", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "care-2", "rule_id": "relationship-care-giving-v1", "text": "记得吃饭", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "care-3", "rule_id": "relationship-care-giving-v1", "text": "你要早点休息", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "care-4", "rule_id": "relationship-care-giving-v1", "text": "不用早点休息", "recent_context": [], "idle_seconds": null, "expected_emitted": false},
+    {"case_id": "care-5", "rule_id": "relationship-care-giving-v1", "text": "今天很忙", "recent_context": [], "idle_seconds": null, "expected_emitted": false},
+
+    {"case_id": "affectionate-1", "rule_id": "relationship-affectionate-v1", "text": "想你", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "affectionate-2", "rule_id": "relationship-affectionate-v1", "text": "抱抱", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "affectionate-3", "rule_id": "relationship-affectionate-v1", "text": "给你抱抱", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "affectionate-4", "rule_id": "relationship-affectionate-v1", "text": "我不想你", "recent_context": [], "idle_seconds": null, "expected_emitted": false},
+    {"case_id": "affectionate-5", "rule_id": "relationship-affectionate-v1", "text": "不用抱抱", "recent_context": [], "idle_seconds": null, "expected_emitted": false},
+
+    {"case_id": "repair-1", "rule_id": "relationship-repair-v1", "text": "对不起", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "repair-2", "rule_id": "relationship-repair-v1", "text": "抱歉", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "repair-3", "rule_id": "relationship-repair-v1", "text": "真的抱歉", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "repair-4", "rule_id": "relationship-repair-v1", "text": "是我的错", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "repair-5", "rule_id": "relationship-repair-v1", "text": "不用抱歉", "recent_context": [], "idle_seconds": null, "expected_emitted": false},
+
+    {"case_id": "opening-1", "rule_id": "stage-opening-v1", "text": "你好", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "opening-2", "rule_id": "stage-opening-v1", "text": "早上好", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "opening-3", "rule_id": "stage-opening-v1", "text": "晚上好", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "opening-4", "rule_id": "stage-opening-v1", "text": "今天怎么样", "recent_context": [], "idle_seconds": null, "expected_emitted": false},
+    {"case_id": "opening-5", "rule_id": "stage-opening-v1", "text": "你好", "recent_context": ["上一句"], "idle_seconds": 30, "expected_emitted": false},
+
+    {"case_id": "reopening-1", "rule_id": "stage-reopening-v1", "text": "你好", "recent_context": ["上次聊天"], "idle_seconds": 21600, "expected_emitted": true},
+    {"case_id": "reopening-2", "rule_id": "stage-reopening-v1", "text": "早上好", "recent_context": ["上次聊天"], "idle_seconds": 30000, "expected_emitted": true},
+    {"case_id": "reopening-3", "rule_id": "stage-reopening-v1", "text": "晚上好", "recent_context": ["上次聊天"], "idle_seconds": 21600, "expected_emitted": true},
+    {"case_id": "reopening-4", "rule_id": "stage-reopening-v1", "text": "你好", "recent_context": ["上次聊天"], "idle_seconds": 21599, "expected_emitted": false},
+    {"case_id": "reopening-5", "rule_id": "stage-reopening-v1", "text": "你好", "recent_context": [], "idle_seconds": null, "expected_emitted": false},
+
+    {"case_id": "continuing-1", "rule_id": "stage-continuing-v1", "text": "继续说", "recent_context": ["上一句"], "idle_seconds": 30, "expected_emitted": true},
+    {"case_id": "continuing-2", "rule_id": "stage-continuing-v1", "text": "今天很忙", "recent_context": ["上一句"], "idle_seconds": 30, "expected_emitted": true},
+    {"case_id": "continuing-3", "rule_id": "stage-continuing-v1", "text": "你好", "recent_context": ["上一句"], "idle_seconds": 30, "expected_emitted": true},
+    {"case_id": "continuing-4", "rule_id": "stage-continuing-v1", "text": "今天很忙", "recent_context": [], "idle_seconds": null, "expected_emitted": false},
+    {"case_id": "continuing-5", "rule_id": "stage-continuing-v1", "text": "你好", "recent_context": ["上次聊天"], "idle_seconds": 21600, "expected_emitted": true},
+
+    {"case_id": "closing-1", "rule_id": "stage-closing-v1", "text": "晚安", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "closing-2", "rule_id": "stage-closing-v1", "text": "再见", "recent_context": [], "idle_seconds": null, "expected_emitted": true},
+    {"case_id": "closing-3", "rule_id": "stage-closing-v1", "text": "晚安，想你", "recent_context": ["明天再聊"], "idle_seconds": 90, "expected_emitted": true},
+    {"case_id": "closing-4", "rule_id": "stage-closing-v1", "text": "不晚安", "recent_context": [], "idle_seconds": null, "expected_emitted": false},
+    {"case_id": "closing-5", "rule_id": "stage-closing-v1", "text": "你好", "recent_context": [], "idle_seconds": null, "expected_emitted": false}
+  ],
+  "scenarios": [
+    {
+      "scenario_id": "opening-greeting",
+      "text": "你好",
+      "recent_context": [],
+      "idle_seconds": null,
+      "expected": {
+        "speech_act": ["greeting"],
+        "expressed_affect": [],
+        "relationship_context": [],
+        "dialogue_stage": ["opening"]
+      }
+    },
+    {
+      "scenario_id": "support-seeking-continuation",
+      "text": "今天有点难过，陪陪我好吗？",
+      "recent_context": ["我今天遇到了一件事"],
+      "idle_seconds": 30,
+      "expected": {
+        "speech_act": ["question", "request"],
+        "expressed_affect": ["sadness"],
+        "relationship_context": ["support_seeking"],
+        "dialogue_stage": ["continuing"]
+      }
+    },
+    {
+      "scenario_id": "care-and-gratitude",
+      "text": "谢谢你，记得早点休息",
+      "recent_context": ["我刚忙完"],
+      "idle_seconds": 60,
+      "expected": {
+        "speech_act": ["gratitude"],
+        "expressed_affect": [],
+        "relationship_context": ["affiliative", "care_giving"],
+        "dialogue_stage": ["continuing"]
+      }
+    },
+    {
+      "scenario_id": "affectionate-closing",
+      "text": "晚安，想你",
+      "recent_context": ["明天再聊"],
+      "idle_seconds": 90,
+      "expected": {
+        "speech_act": ["farewell"],
+        "expressed_affect": ["affection"],
+        "relationship_context": ["affectionate"],
+        "dialogue_stage": ["closing"]
+      }
+    }
+  ]
+}

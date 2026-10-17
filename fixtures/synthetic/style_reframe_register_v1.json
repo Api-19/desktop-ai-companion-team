@@ -1,0 +1,62 @@
+[
+  {
+    "id": "register-1",
+    "text": "早上好，今天有点困。",
+    "recent_context": [],
+    "speaker": "owner"
+  },
+  {
+    "id": "register-2",
+    "text": "帮我想想晚饭吃什么。",
+    "recent_context": [],
+    "speaker": "owner"
+  },
+  {
+    "id": "register-3",
+    "text": "这个东西怎么整理？",
+    "recent_context": [],
+    "speaker": "owner"
+  },
+  {
+    "id": "register-4",
+    "text": "你好，最近怎么样？",
+    "recent_context": [],
+    "speaker": "friend"
+  },
+  {
+    "id": "register-5",
+    "text": "帮我看看怎么安排周末。",
+    "recent_context": [],
+    "speaker": "friend"
+  },
+  {
+    "id": "register-6",
+    "text": "这个盒子打不开怎么办？",
+    "recent_context": [],
+    "speaker": "friend"
+  },
+  {
+    "id": "register-7",
+    "text": "晚上好，聊一会儿？",
+    "recent_context": [],
+    "speaker": "friend"
+  },
+  {
+    "id": "register-8",
+    "text": "你好，第一次来。",
+    "recent_context": [],
+    "speaker": "visitor"
+  },
+  {
+    "id": "register-9",
+    "text": "请问怎么开始聊天？",
+    "recent_context": [],
+    "speaker": "visitor"
+  },
+  {
+    "id": "register-10",
+    "text": "谢谢你的帮助。",
+    "recent_context": [],
+    "speaker": "visitor"
+  }
+]

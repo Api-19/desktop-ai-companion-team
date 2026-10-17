@@ -1,0 +1,61 @@
+{
+  "fixture_version": "public-synthetic-chinese-semantic-generalization-v1",
+  "origin": "reconstructed-new-version-not-original-temporary-set",
+  "case_count": 33,
+  "scenario_catalog": [
+    {"scenario_id":"gratitude","required_labels":["gratitude"],"semantic_definition_id":"scenario-gratitude-v1"},
+    {"scenario_id":"sleep_farewell","required_labels":["farewell","closing"],"semantic_definition_id":"scenario-sleep-farewell-v1"},
+    {"scenario_id":"fatigue","required_labels":["fatigue"],"semantic_definition_id":"scenario-fatigue-v1"},
+    {"scenario_id":"sleep_care","required_labels":["care_giving"],"semantic_definition_id":"scenario-sleep-care-v1"},
+    {"scenario_id":"generic_question","required_labels":["question"],"semantic_definition_id":"scenario-generic-question-v1"},
+    {"scenario_id":"affection","required_labels":["affection","affectionate"],"semantic_definition_id":"scenario-affection-v1"},
+    {"scenario_id":"care_support","required_labels":["care_giving"],"semantic_definition_id":"scenario-care-support-v1"},
+    {"scenario_id":"support_request","required_labels":["request","support_seeking"],"semantic_definition_id":"scenario-support-request-v1"},
+    {"scenario_id":"sad_checkin","required_labels":["sadness","question"],"semantic_definition_id":"scenario-sad-checkin-v1"},
+    {"scenario_id":"sad_support","required_labels":["sadness","support_seeking"],"semantic_definition_id":"scenario-sad-support-v1"},
+    {"scenario_id":"apology","required_labels":["apology","repair"],"semantic_definition_id":"scenario-apology-v1"}
+  ],
+  "cases": [
+    {"id":"gen-syn-01","category":"synonym_colloquial","text":"感谢你","recent_context":[],"expected_kind":"known","expected":["gratitude"]},
+    {"id":"gen-syn-02","category":"synonym_colloquial","text":"我先睡啦","recent_context":[],"expected_kind":"known","expected":["sleep_farewell"]},
+    {"id":"gen-syn-03","category":"synonym_colloquial","text":"我很想念你","recent_context":[],"expected_kind":"known","expected":["affection"]},
+    {"id":"gen-syn-04","category":"synonym_colloquial","text":"你能陪我聊一会吗","recent_context":[],"expected_kind":"known","expected":["support_request"]},
+    {"id":"gen-syn-05","category":"synonym_colloquial","text":"我陪你聊聊","recent_context":[],"expected_kind":"known","expected":["care_support"]},
+    {"id":"gen-syn-06","category":"synonym_colloquial","text":"我有些伤心","recent_context":[],"expected_kind":"nearby","expected":["sad_checkin","sad_support"]},
+
+    {"id":"gen-question-01","category":"direct_question","text":"你今天开心吗","recent_context":[],"expected_kind":"known","expected":["generic_question"]},
+    {"id":"gen-question-02","category":"direct_question","text":"你会早点睡吗","recent_context":[],"expected_kind":"known","expected":["generic_question"]},
+    {"id":"gen-question-03","category":"direct_question","text":"我能先休息吗","recent_context":[],"expected_kind":"known","expected":["generic_question"]},
+
+    {"id":"gen-reported-01","category":"reported","text":"她说她晚安了吗","recent_context":[],"expected_kind":"known","expected":["generic_question"]},
+    {"id":"gen-reported-02","category":"reported","text":"他说谢谢了吗","recent_context":[],"expected_kind":"known","expected":["generic_question"]},
+    {"id":"gen-reported-03","category":"reported","text":"小王说想你了吗","recent_context":[],"expected_kind":"known","expected":["generic_question"]},
+    {"id":"gen-reported-04","category":"reported","text":"朋友问“陪我聊聊”了吗","recent_context":[],"expected_kind":"known","expected":["generic_question"]},
+
+    {"id":"gen-mention-01","category":"mention","text":"晚安是告别语吗","recent_context":[],"expected_kind":"known","expected":["generic_question"]},
+    {"id":"gen-mention-02","category":"mention","text":"“谢谢”怎么理解","recent_context":[],"expected_kind":"known","expected":["generic_question"]},
+    {"id":"gen-mention-03","category":"mention","text":"“想你”是什么语气","recent_context":[],"expected_kind":"known","expected":["generic_question"]},
+    {"id":"gen-mention-04","category":"mention","text":"陪我聊聊这句话怎么翻译","recent_context":[],"expected_kind":"known","expected":["generic_question"]},
+
+    {"id":"gen-negation-01","category":"negation_scope","text":"我并不感谢你","recent_context":[],"expected_kind":"open_set","expected":[]},
+    {"id":"gen-negation-02","category":"negation_scope","text":"我一点也不累","recent_context":[],"expected_kind":"open_set","expected":[]},
+    {"id":"gen-negation-03","category":"negation_scope","text":"我还不睡","recent_context":[],"expected_kind":"open_set","expected":[]},
+    {"id":"gen-negation-04","category":"negation_scope","text":"我并非不想念你","recent_context":[],"expected_kind":"known","expected":["affection"]},
+
+    {"id":"gen-role-01","category":"role_swap","text":"你惦记我吗","recent_context":[],"expected_kind":"known","expected":["generic_question"]},
+    {"id":"gen-role-02","category":"role_swap","text":"你来陪我说会儿话","recent_context":[],"expected_kind":"known","expected":["support_request"]},
+    {"id":"gen-role-03","category":"role_swap","text":"我会陪着你","recent_context":[],"expected_kind":"known","expected":["care_support"]},
+
+    {"id":"gen-context-01","category":"resolved_context","text":"我也是呀","recent_context":["我很想念你"],"expected_kind":"known","expected":["affection"]},
+    {"id":"gen-context-02","category":"resolved_context","text":"那先这样吧","recent_context":["我准备去歇一会儿"],"expected_kind":"known","expected":["sleep_farewell"]},
+    {"id":"gen-context-03","category":"resolved_context","text":"好啊","recent_context":["我陪你说会儿话"],"expected_kind":"known","expected":["care_support"]},
+
+    {"id":"gen-compound-01","category":"compound","text":"谢谢你啦，我去休息咯","recent_context":[],"expected_kind":"compound","expected":["gratitude","sleep_farewell"]},
+    {"id":"gen-compound-02","category":"compound","text":"抱抱你，我先睡啦","recent_context":[],"expected_kind":"compound","expected":["affection","sleep_farewell"]},
+    {"id":"gen-compound-03","category":"compound","text":"我有些伤心，你能陪我说说吗","recent_context":[],"expected_kind":"compound","expected":["sad_support","support_request"]},
+
+    {"id":"gen-open-01","category":"true_open_set","text":"帮我算二十八除以四","recent_context":[],"expected_kind":"open_set","expected":[]},
+    {"id":"gen-open-02","category":"true_open_set","text":"相对论方程怎么证明","recent_context":[],"expected_kind":"open_set","expected":[]},
+    {"id":"gen-open-03","category":"true_open_set","text":"阳台的灯泡坏了","recent_context":[],"expected_kind":"open_set","expected":[]}
+  ]
+}

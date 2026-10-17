@@ -1,0 +1,122 @@
+[
+  {
+    "scenario_id": "greeting-1",
+    "text": "早上好",
+    "recent_context": [],
+    "idle_seconds": 0
+  },
+  {
+    "scenario_id": "greeting-2",
+    "text": "晚上好",
+    "recent_context": [],
+    "idle_seconds": 21600
+  },
+  {
+    "scenario_id": "courtesy-1",
+    "text": "我帮你弄好了",
+    "recent_context": [],
+    "idle_seconds": 0
+  },
+  {
+    "scenario_id": "courtesy-2",
+    "text": "别打断我",
+    "recent_context": [],
+    "idle_seconds": 0
+  },
+  {
+    "scenario_id": "meals-1",
+    "text": "中午忙得忘记吃饭了",
+    "recent_context": [],
+    "idle_seconds": 0
+  },
+  {
+    "scenario_id": "meals-2",
+    "text": "我还没吃饭",
+    "recent_context": [],
+    "idle_seconds": 0
+  },
+  {
+    "scenario_id": "sleep-1",
+    "text": "我准备休息了",
+    "recent_context": [],
+    "idle_seconds": 0
+  },
+  {
+    "scenario_id": "sleep-2",
+    "text": "今晚又熬夜了",
+    "recent_context": [],
+    "idle_seconds": 0
+  },
+  {
+    "scenario_id": "weather-1",
+    "text": "天气转冷",
+    "recent_context": [],
+    "idle_seconds": 0
+  },
+  {
+    "scenario_id": "weather-2",
+    "text": "外面好像要下雨",
+    "recent_context": [],
+    "idle_seconds": 0
+  },
+  {
+    "scenario_id": "household-1",
+    "text": "家务刚做完",
+    "recent_context": [],
+    "idle_seconds": 0
+  },
+  {
+    "scenario_id": "household-2",
+    "text": "房间还没整理",
+    "recent_context": [],
+    "idle_seconds": 0
+  },
+  {
+    "scenario_id": "shopping-1",
+    "text": "这两件我不知道选哪个",
+    "recent_context": [],
+    "idle_seconds": 0
+  },
+  {
+    "scenario_id": "shopping-2",
+    "text": "我又想买东西了",
+    "recent_context": [],
+    "idle_seconds": 0
+  },
+  {
+    "scenario_id": "work_study-1",
+    "text": "作业写完了",
+    "recent_context": [],
+    "idle_seconds": 0
+  },
+  {
+    "scenario_id": "work_study-2",
+    "text": "今天工作有点累",
+    "recent_context": [],
+    "idle_seconds": 0
+  },
+  {
+    "scenario_id": "general_emotion-1",
+    "text": "我今天心情挺好的",
+    "recent_context": [],
+    "idle_seconds": 0
+  },
+  {
+    "scenario_id": "general_emotion-2",
+    "text": "我有点失落",
+    "recent_context": [],
+    "idle_seconds": 0
+  },
+  {
+    "scenario_id": "gentle_affection-1",
+    "text": "今天都没怎么见到你",
+    "recent_context": [],
+    "idle_seconds": 0
+  },
+  {
+    "scenario_id": "gentle_affection-2",
+    "text": "我准备出门了",
+    "recent_context": [],
+    "idle_seconds": 0
+  }
+]

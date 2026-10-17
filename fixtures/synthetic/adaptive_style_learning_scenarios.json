@@ -1,0 +1,10 @@
+{
+  "fixture_version": "public-synthetic-adaptive-style-v1",
+  "privacy_class": "public_synthetic_only",
+  "cases": [
+    {"id": "ready-five-three-days", "expected_status": "ready"},
+    {"id": "two-sided-conflict", "expected_status": "conflict"},
+    {"id": "ratio-drift", "expected_status": "drift_blocked"},
+    {"id": "old-or-light-evidence", "expected_status": "insufficient_evidence"}
+  ]
+}

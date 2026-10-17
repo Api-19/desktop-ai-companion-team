@@ -1,0 +1,15 @@
+[Unit]
+Description=Kiki robot body
+After=network-online.target
+
+[Service]
+EnvironmentFile=%h/.config/kiki-body/kiki-body.env
+Environment=PYTHONPATH=%h/kiki-body/src
+ExecStartPre=%h/kiki-body/wait_time_sync.sh
+ExecStart=%h/kiki-body/venv/bin/python -m companion.bodylink.body_main --brain-host ${KIKI_BRAIN_HOST} --brain-port ${KIKI_BRAIN_PORT} --body-id ${KIKI_BODY_ID} --cert-dir %h/.config/kiki-body/certs --input-device ${KIKI_INPUT_DEVICE} --output-device ${KIKI_OUTPUT_DEVICE} --hostapi ${KIKI_HOSTAPI} --button none
+TimeoutStartSec=130
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

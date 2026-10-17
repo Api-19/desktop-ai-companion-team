@@ -1,0 +1,68 @@
+{
+  "exportInfo": {
+    "version": "synthetic-1",
+    "exportedAt": 1784246400,
+    "generator": "synthetic-test-fixture",
+    "format": "json"
+  },
+  "session": {
+    "wxid": "synthetic-contact",
+    "nickname": "Synthetic Contact",
+    "remark": "",
+    "displayName": "Synthetic Contact",
+    "type": "私聊",
+    "platform": "wechat",
+    "isGroup": false,
+    "ownerId": "synthetic-owner",
+    "firstTimestamp": 1784246400,
+    "lastTimestamp": 1784246520,
+    "messageCount": 3
+  },
+  "messages": [
+    {
+      "localId": 1,
+      "platformMessageId": "synthetic-message-1",
+      "createTime": 1784246400,
+      "formattedTime": "2026-07-17 00:00:00",
+      "type": "文本消息",
+      "localType": 1,
+      "chatLabType": 0,
+      "content": "synthetic hello",
+      "rawContent": "synthetic-private-raw-value",
+      "isSend": 1,
+      "senderUsername": "synthetic-owner",
+      "senderDisplayName": "Synthetic Owner",
+      "source": null
+    },
+    {
+      "localId": 2,
+      "platformMessageId": "synthetic-message-2",
+      "createTime": 1784246460,
+      "formattedTime": "2026-07-17 00:01:00",
+      "type": "图片消息",
+      "localType": 3,
+      "chatLabType": 1,
+      "content": "[synthetic image]",
+      "rawContent": "synthetic-image-raw-value",
+      "isSend": 0,
+      "senderUsername": "synthetic-contact",
+      "senderDisplayName": "Synthetic Contact",
+      "source": null
+    },
+    {
+      "localId": 3,
+      "platformMessageId": "synthetic-message-3",
+      "createTime": 1784246520,
+      "formattedTime": "2026-07-17 00:02:00",
+      "type": "其他消息",
+      "localType": 266287972401,
+      "chatLabType": 7,
+      "content": "[synthetic other]",
+      "rawContent": "synthetic-other-raw-value",
+      "isSend": 1,
+      "senderUsername": "synthetic-contact",
+      "senderDisplayName": "Synthetic Owner",
+      "source": null
+    }
+  ]
+}

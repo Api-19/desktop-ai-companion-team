@@ -1,0 +1,41 @@
+{
+  "fixture_version": "public-synthetic-style-evidence-v1",
+  "privacy_class": "public_synthetic_only",
+  "cases": [
+    {
+      "case_id": "known-approved-hit",
+      "route_kind": "known",
+      "expected_status": "available"
+    },
+    {
+      "case_id": "nearby-approved-hit",
+      "route_kind": "nearby",
+      "expected_status": "available"
+    },
+    {
+      "case_id": "compound-approved-hit",
+      "route_kind": "compound",
+      "expected_status": "available"
+    },
+    {
+      "case_id": "known-no-match",
+      "route_kind": "known",
+      "expected_status": "no_match"
+    },
+    {
+      "case_id": "known-low-confidence",
+      "route_kind": "known",
+      "expected_status": "low_confidence"
+    },
+    {
+      "case_id": "known-corrupt-private-store",
+      "route_kind": "known",
+      "expected_status": "corrupt"
+    },
+    {
+      "case_id": "open-set-abstain",
+      "route_kind": "open_set",
+      "expected_status": "not_requested"
+    }
+  ]
+}

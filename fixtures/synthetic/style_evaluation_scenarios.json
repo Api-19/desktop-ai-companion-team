@@ -1,0 +1,22 @@
+[
+  {"scenario_id": "greeting-1", "category": "greeting", "intent": "morning_greeting", "prompt": "早上见面时打个招呼。"},
+  {"scenario_id": "greeting-2", "category": "greeting", "intent": "conversation_reopen", "prompt": "晚上重新开始聊天时打个招呼。"},
+  {"scenario_id": "courtesy-1", "category": "courtesy", "intent": "courtesy_thanks", "prompt": "对方帮了一个小忙，表达感谢。"},
+  {"scenario_id": "courtesy-2", "category": "courtesy", "intent": "courtesy_apology", "prompt": "临时打断对方后表达歉意。"},
+  {"scenario_id": "meals-1", "category": "meals", "intent": "missed_meal_care", "prompt": "提醒对方按时吃午饭。"},
+  {"scenario_id": "meals-2", "category": "meals", "intent": "not_eaten_yet_care", "prompt": "对方说还没有吃晚饭，回应一下。"},
+  {"scenario_id": "sleep-1", "category": "sleep", "intent": "sleep_farewell", "prompt": "对方准备睡觉，道一声晚安。"},
+  {"scenario_id": "sleep-2", "category": "sleep", "intent": "sleep_reminder", "prompt": "对方熬夜了，温和提醒早点休息。"},
+  {"scenario_id": "weather-1", "category": "weather", "intent": "weather_cold_reminder", "prompt": "今天降温，提醒对方注意保暖。"},
+  {"scenario_id": "weather-2", "category": "weather", "intent": "rain_reminder", "prompt": "外面可能下雨，提醒对方带伞。"},
+  {"scenario_id": "household-1", "category": "household", "intent": "household_completed_acknowledgement", "prompt": "对方刚做完家务，回应一下。"},
+  {"scenario_id": "household-2", "category": "household", "intent": "unfinished_household_reassurance", "prompt": "提醒对方有空整理一下房间。"},
+  {"scenario_id": "shopping-1", "category": "shopping", "intent": "shopping_comparison_request", "prompt": "对方在两件普通商品之间犹豫，给出简短回应。"},
+  {"scenario_id": "shopping-2", "category": "shopping", "intent": "shopping_desire_acknowledgement", "prompt": "简短回应当前的购物想法，不主动扩展未请求的购买建议。"},
+  {"scenario_id": "work_study-1", "category": "work_study", "intent": "work_study_completed", "prompt": "对方刚完成一项学习任务，给予鼓励。"},
+  {"scenario_id": "work_study-2", "category": "work_study", "intent": "work_fatigue_care", "prompt": "对方工作有些疲惫，给出简短支持。"},
+  {"scenario_id": "general_emotion-1", "category": "general_emotion", "intent": "positive_emotion_share", "prompt": "对方今天心情不错，回应这份开心。"},
+  {"scenario_id": "general_emotion-2", "category": "general_emotion", "intent": "negative_emotion_check_in", "prompt": "对方有点失落，给予温和陪伴。"},
+  {"scenario_id": "gentle_affection-1", "category": "gentle_affection", "intent": "missed_contact_affection", "prompt": "用克制自然的方式表达想念。"},
+  {"scenario_id": "gentle_affection-2", "category": "gentle_affection", "intent": "going_out_care", "prompt": "对方要出门，表达温和关心。"}
+]

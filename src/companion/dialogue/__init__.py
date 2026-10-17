@@ -1,0 +1,115 @@
+from companion.dialogue.ab import (
+    STYLE_REFRESH_SCENARIO_IDS,
+    ABPair,
+    ABScenario,
+    ABStatus,
+    ABSuiteSummary,
+    SmokeSummary,
+    load_ab_scenarios,
+    load_style_refresh_scenarios,
+    run_ab_suite,
+    run_baseline_smoke,
+)
+from companion.dialogue.composition import build_real_orchestrator, build_snippet_style_runtime
+from companion.dialogue.config import DialogueConfigError, load_budget_config, load_dialogue_config
+from companion.dialogue.memory import (
+    MemoryGateway,
+    ParsedMemoryCommand,
+    parse_memory_command,
+)
+from companion.dialogue.models import (
+    BudgetConfig,
+    DialogueConfig,
+    DialogueMode,
+    DialogueRun,
+    DialogueSecrets,
+    DialogueSessionState,
+    DialogueTrace,
+    ProviderConfig,
+    ProviderResult,
+    ProviderUsage,
+    SnippetStyleSources,
+    StyleRuntimeSources,
+)
+from companion.dialogue.observer import TurnObservation, TurnObserver
+from companion.dialogue.orchestrator import DialogueOrchestrator
+from companion.dialogue.profile import PartnerProfileProvider
+from companion.dialogue.provider import (
+    DialogueProvider,
+    InvalidProviderResponse,
+    OpenAICompatibleProvider,
+    ProviderError,
+    ProviderTimeout,
+)
+from companion.dialogue.style_refresh import (
+    StyleRefreshPreflightSummary,
+    preflight_style_refresh,
+)
+from companion.dialogue.style_refresh_review import (
+    StyleRefreshAnswerKey,
+    StyleRefreshRating,
+    StyleRefreshRatings,
+    StyleRefreshReviewSummary,
+    score_style_refresh,
+)
+from companion.dialogue.usage import (
+    BudgetExceeded,
+    MonthlyUsageLedger,
+    UsageLedgerError,
+    UsageReviewRequired,
+    UsageSnapshot,
+)
+
+__all__ = [
+    "STYLE_REFRESH_SCENARIO_IDS",
+    "ABPair",
+    "ABScenario",
+    "ABStatus",
+    "ABSuiteSummary",
+    "BudgetConfig",
+    "BudgetExceeded",
+    "DialogueConfig",
+    "DialogueConfigError",
+    "DialogueMode",
+    "DialogueOrchestrator",
+    "DialogueProvider",
+    "DialogueRun",
+    "DialogueSecrets",
+    "DialogueSessionState",
+    "DialogueTrace",
+    "InvalidProviderResponse",
+    "MemoryGateway",
+    "MonthlyUsageLedger",
+    "OpenAICompatibleProvider",
+    "ParsedMemoryCommand",
+    "PartnerProfileProvider",
+    "ProviderConfig",
+    "ProviderError",
+    "ProviderResult",
+    "ProviderTimeout",
+    "ProviderUsage",
+    "SmokeSummary",
+    "SnippetStyleSources",
+    "StyleRefreshAnswerKey",
+    "StyleRefreshPreflightSummary",
+    "StyleRefreshRating",
+    "StyleRefreshRatings",
+    "StyleRefreshReviewSummary",
+    "StyleRuntimeSources",
+    "TurnObservation",
+    "TurnObserver",
+    "UsageLedgerError",
+    "UsageReviewRequired",
+    "UsageSnapshot",
+    "build_real_orchestrator",
+    "build_snippet_style_runtime",
+    "load_ab_scenarios",
+    "load_budget_config",
+    "load_dialogue_config",
+    "load_style_refresh_scenarios",
+    "parse_memory_command",
+    "preflight_style_refresh",
+    "run_ab_suite",
+    "run_baseline_smoke",
+    "score_style_refresh",
+]

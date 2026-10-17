@@ -1,0 +1,9 @@
+[
+  {"scenario_id":"meals-2","text":"我还没吃饭","recent_context":[],"idle_seconds":0},
+  {"scenario_id":"sleep-1","text":"我准备休息了","recent_context":[],"idle_seconds":0},
+  {"scenario_id":"sleep-2","text":"今晚又熬夜了","recent_context":[],"idle_seconds":0},
+  {"scenario_id":"weather-2","text":"外面好像要下雨","recent_context":[],"idle_seconds":0},
+  {"scenario_id":"household-1","text":"家务刚做完","recent_context":[],"idle_seconds":0},
+  {"scenario_id":"shopping-2","text":"我又想买东西了","recent_context":[],"idle_seconds":0},
+  {"scenario_id":"gentle_affection-2","text":"我准备出门了","recent_context":[],"idle_seconds":0}
+]

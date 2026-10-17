@@ -1,0 +1,6 @@
+[companion]
+environment = "development"
+log_level = "INFO"
+private_data_dir = "private_data"
+runtime_data_dir = "runtime_data"
+test_results_dir = "test-results"

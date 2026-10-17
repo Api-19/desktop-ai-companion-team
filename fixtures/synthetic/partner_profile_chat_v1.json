@@ -1,0 +1,200 @@
+[
+  {
+    "schema_version": 1,
+    "conversation_id": "synthetic-profile-chat",
+    "message_id": "synthetic-profile-00",
+    "timestamp": "2026-10-10T09:00:00+08:00",
+    "source_speaker_id": "synthetic-partner",
+    "source_speaker_name": null,
+    "direction": "inbound",
+    "content_type": "text",
+    "text": "我每天喝水啊。我一般晚睡呀。"
+  },
+  {
+    "schema_version": 1,
+    "conversation_id": "synthetic-profile-chat",
+    "message_id": "synthetic-profile-01",
+    "timestamp": "2026-10-10T09:01:00+08:00",
+    "source_speaker_id": "synthetic-partner",
+    "source_speaker_name": null,
+    "direction": "inbound",
+    "content_type": "text",
+    "text": "我喜欢奶茶呢。"
+  },
+  {
+    "schema_version": 1,
+    "conversation_id": "synthetic-profile-chat",
+    "message_id": "synthetic-profile-02",
+    "timestamp": "2026-10-10T09:02:00+08:00",
+    "source_speaker_id": "synthetic-partner",
+    "source_speaker_name": null,
+    "direction": "inbound",
+    "content_type": "text",
+    "text": "我不爱咖啡。"
+  },
+  {
+    "schema_version": 1,
+    "conversation_id": "synthetic-profile-chat",
+    "message_id": "synthetic-profile-03",
+    "timestamp": "2026-10-10T09:03:00+08:00",
+    "source_speaker_id": "synthetic-partner",
+    "source_speaker_name": null,
+    "direction": "inbound",
+    "content_type": "text",
+    "text": "我经常跑步。"
+  },
+  {
+    "schema_version": 1,
+    "conversation_id": "synthetic-profile-chat",
+    "message_id": "synthetic-profile-04",
+    "timestamp": "2026-10-10T09:04:00+08:00",
+    "source_speaker_id": "synthetic-partner",
+    "source_speaker_name": null,
+    "direction": "inbound",
+    "content_type": "text",
+    "text": "我讨厌吃辣。"
+  },
+  {
+    "schema_version": 1,
+    "conversation_id": "synthetic-profile-chat",
+    "message_id": "synthetic-profile-05",
+    "timestamp": "2026-10-10T09:05:00+08:00",
+    "source_speaker_id": "synthetic-partner",
+    "source_speaker_name": null,
+    "direction": "inbound",
+    "content_type": "text",
+    "text": "我从来不吃早饭。"
+  },
+  {
+    "schema_version": 1,
+    "conversation_id": "synthetic-profile-chat",
+    "message_id": "synthetic-profile-06",
+    "timestamp": "2026-10-10T09:06:00+08:00",
+    "source_speaker_id": "synthetic-partner",
+    "source_speaker_name": null,
+    "direction": "inbound",
+    "content_type": "text",
+    "text": "我很少吃零食。"
+  },
+  {
+    "schema_version": 1,
+    "conversation_id": "synthetic-profile-chat",
+    "message_id": "synthetic-profile-07",
+    "timestamp": "2026-10-10T09:07:00+08:00",
+    "source_speaker_id": "synthetic-partner",
+    "source_speaker_name": null,
+    "direction": "inbound",
+    "content_type": "text",
+    "text": "我每天喝水啊。"
+  },
+  {
+    "schema_version": 1,
+    "conversation_id": "synthetic-profile-chat",
+    "message_id": "synthetic-profile-08",
+    "timestamp": "2026-10-10T09:08:00+08:00",
+    "source_speaker_id": "synthetic-owner",
+    "source_speaker_name": null,
+    "direction": "outbound",
+    "content_type": "text",
+    "text": "你要多喝水，别老熬夜。"
+  },
+  {
+    "schema_version": 1,
+    "conversation_id": "synthetic-profile-chat",
+    "message_id": "synthetic-profile-09",
+    "timestamp": "2026-10-10T09:09:00+08:00",
+    "source_speaker_id": "synthetic-partner",
+    "source_speaker_name": null,
+    "direction": "inbound",
+    "content_type": "text",
+    "text": "我每天喝水吗？"
+  },
+  {
+    "schema_version": 1,
+    "conversation_id": "synthetic-profile-chat",
+    "message_id": "synthetic-profile-10",
+    "timestamp": "2026-10-10T09:10:00+08:00",
+    "source_speaker_id": "synthetic-partner",
+    "source_speaker_name": null,
+    "direction": "inbound",
+    "content_type": "text",
+    "text": "如果我每天喝水。"
+  },
+  {
+    "schema_version": 1,
+    "conversation_id": "synthetic-profile-chat",
+    "message_id": "synthetic-profile-11",
+    "timestamp": "2026-10-10T09:11:00+08:00",
+    "source_speaker_id": "synthetic-partner",
+    "source_speaker_name": null,
+    "direction": "inbound",
+    "content_type": "text",
+    "text": "以前我喜欢奶茶。"
+  },
+  {
+    "schema_version": 1,
+    "conversation_id": "synthetic-profile-chat",
+    "message_id": "synthetic-profile-12",
+    "timestamp": "2026-10-10T09:12:00+08:00",
+    "source_speaker_id": "synthetic-partner",
+    "source_speaker_name": null,
+    "direction": "inbound",
+    "content_type": "text",
+    "text": "她每天喝水，我喜欢咖啡。"
+  },
+  {
+    "schema_version": 1,
+    "conversation_id": "synthetic-profile-chat",
+    "message_id": "synthetic-profile-13",
+    "timestamp": "2026-10-10T09:13:00+08:00",
+    "source_speaker_id": "synthetic-partner",
+    "source_speaker_name": null,
+    "direction": "inbound",
+    "content_type": "text",
+    "text": "我每天喝水但生病了。"
+  },
+  {
+    "schema_version": 1,
+    "conversation_id": "synthetic-profile-chat",
+    "message_id": "synthetic-profile-14",
+    "timestamp": "2026-10-10T09:14:00+08:00",
+    "source_speaker_id": "synthetic-partner",
+    "source_speaker_name": null,
+    "direction": "inbound",
+    "content_type": "text",
+    "text": "“我喜欢奶茶”。"
+  },
+  {
+    "schema_version": 1,
+    "conversation_id": "synthetic-profile-chat",
+    "message_id": "synthetic-profile-15",
+    "timestamp": "2026-10-10T09:15:00+08:00",
+    "source_speaker_id": "synthetic-partner",
+    "source_speaker_name": null,
+    "direction": "inbound",
+    "content_type": "text",
+    "text": "我喜欢合成蓝星。"
+  },
+  {
+    "schema_version": 1,
+    "conversation_id": "synthetic-profile-chat",
+    "message_id": "synthetic-profile-16",
+    "timestamp": "2026-10-10T09:16:00+08:00",
+    "source_speaker_id": "synthetic-partner",
+    "source_speaker_name": null,
+    "direction": "inbound",
+    "content_type": "text",
+    "text": "今天天气真好。"
+  },
+  {
+    "schema_version": 1,
+    "conversation_id": "synthetic-profile-chat",
+    "message_id": "synthetic-profile-17",
+    "timestamp": "2026-10-10T09:17:00+08:00",
+    "source_speaker_id": "synthetic-partner",
+    "source_speaker_name": null,
+    "direction": "inbound",
+    "content_type": "image",
+    "text": null
+  }
+]

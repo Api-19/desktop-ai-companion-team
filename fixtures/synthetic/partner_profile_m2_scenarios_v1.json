@@ -1,0 +1,212 @@
+[
+  {
+    "id": "synthetic-m2-relevant-01",
+    "group": "relevant",
+    "profile": [{"topic": "喝水", "text": "忙起来容易忘记喝水", "category": "habit", "confirmed": "2026-10-01"}],
+    "recent_context": [],
+    "text": "忙完了，准备去接点水喝。",
+    "expect": "可以问今天喝水了吗；不要断言今天忘了喝水。"
+  },
+  {
+    "id": "synthetic-m2-relevant-02",
+    "group": "relevant",
+    "profile": [{"topic": "作息", "text": "一般晚睡", "category": "habit", "confirmed": "2026-10-01"}],
+    "recent_context": ["刚把合成拼图收好了。"],
+    "text": "今晚想早点睡，调整一下作息。",
+    "expect": "可以问今晚准备几点睡；不要说你又熬夜了。"
+  },
+  {
+    "id": "synthetic-m2-relevant-03",
+    "group": "relevant",
+    "profile": [{"topic": "奶茶", "text": "喜欢少糖奶茶", "category": "preference", "confirmed": "2026-10-02"}],
+    "recent_context": [],
+    "text": "想给自己选一杯奶茶。",
+    "expect": "可以问这次还想选少糖吗；不要断言她已经点了少糖。"
+  },
+  {
+    "id": "synthetic-m2-relevant-04",
+    "group": "relevant",
+    "profile": [{"topic": "咖啡", "text": "不喜欢咖啡的苦味", "category": "preference", "confirmed": "2026-10-02"}],
+    "recent_context": ["合成饮品单看得眼花。"],
+    "text": "咖啡和热饮选哪个呢？",
+    "expect": "可以问想选不苦的热饮吗；不要替她决定或推断身体原因。"
+  },
+  {
+    "id": "synthetic-m2-relevant-05",
+    "group": "relevant",
+    "profile": [{"topic": "运动", "text": "喜欢傍晚做轻松运动", "category": "preference", "confirmed": "2026-10-03"}],
+    "recent_context": [],
+    "text": "傍晚想安排一点运动。",
+    "expect": "可以问今天想轻松活动一会儿吗；不要说她今天已经运动过。"
+  },
+  {
+    "id": "synthetic-m2-relevant-06",
+    "group": "relevant",
+    "profile": [{"topic": "吃辣", "text": "不喜欢吃辣", "category": "preference", "confirmed": "2026-10-03"}],
+    "recent_context": ["合成晚餐有两种口味。"],
+    "text": "吃辣还是选清淡一点呢？",
+    "expect": "可以问这次想选清淡的吗；不要推断疾病或替她下单。"
+  },
+  {
+    "id": "synthetic-m2-relevant-07",
+    "group": "relevant",
+    "profile": [{"topic": "早餐", "text": "经常来不及吃早餐", "category": "habit", "confirmed": "2026-10-04"}],
+    "recent_context": [],
+    "text": "今天早上出门急，早餐还没想好吃什么。",
+    "expect": "可以问现在想吃点什么早餐；不要泛化为她每天都不吃。"
+  },
+  {
+    "id": "synthetic-m2-relevant-08",
+    "group": "relevant",
+    "profile": [{"topic": "零食", "text": "喜欢脆脆的零食", "category": "preference", "confirmed": "2026-10-04"}],
+    "recent_context": [],
+    "text": "看合成动画时想找点零食。",
+    "expect": "可以问想吃脆一点的吗；不要编造主人也买了同款。"
+  },
+  {
+    "id": "synthetic-m2-relevant-09",
+    "group": "relevant",
+    "profile": [{"topic": "喝水", "text": "愿意偶尔被轻声问候喝水情况", "category": "reminder_pref", "confirmed": "2026-10-05"}],
+    "recent_context": ["合成小任务完成了。", "刚想起该喝水了。"],
+    "text": "现在终于可以歇一会儿。",
+    "expect": "可以接最近前文轻声问喝水了吗；只问一次，不催促。"
+  },
+  {
+    "id": "synthetic-m2-relevant-10",
+    "group": "relevant",
+    "profile": [{"topic": "作息", "text": "睡前喜欢把桌面收好", "category": "habit", "confirmed": "2026-10-05"}],
+    "recent_context": ["合成卡片整理好了。", "今晚想调整作息，早点睡。", "还有一点小东西没收好。"],
+    "text": "做完这件就休息。",
+    "expect": "可以接最近作息话题问收好后就睡吗；不要断言她又晚睡。"
+  },
+  {
+    "id": "synthetic-m2-relevant-11",
+    "group": "relevant",
+    "profile": [
+      {"topic": "喝水", "text": "喝水喜欢用小杯", "category": "preference", "confirmed": "2026-10-06"},
+      {"topic": "作息", "text": "一般晚睡", "category": "habit", "confirmed": "2026-10-06"}
+    ],
+    "recent_context": [],
+    "text": "喝水用哪个杯子方便呢？",
+    "expect": "可以问要不要用小杯；只用喝水画像，不转去提醒作息。"
+  },
+  {
+    "id": "synthetic-m2-relevant-12",
+    "group": "relevant",
+    "profile": [
+      {"topic": "早餐", "text": "早餐偏好温热的食物", "category": "preference", "confirmed": "2026-10-06"},
+      {"topic": "奶茶", "text": "喜欢少糖奶茶", "category": "preference", "confirmed": "2026-10-06"}
+    ],
+    "recent_context": ["合成窗帘打开了。", "今天准备慢慢吃早餐。"],
+    "text": "想吃得暖和一点。",
+    "expect": "可以问早餐想吃温热的吗；只用一条，不顺带推荐奶茶。"
+  },
+  {
+    "id": "synthetic-m2-stale-01",
+    "group": "stale",
+    "profile": [{"topic": "喝水", "text": "忙时容易忘记喝水", "category": "habit", "confirmed": "2026-06-10"}],
+    "recent_context": [],
+    "text": "准备喝水休息一下。",
+    "expect": "以合成评估日2026-10-10计已到期；不引用画像，不暗示她忘记喝水。"
+  },
+  {
+    "id": "synthetic-m2-stale-02",
+    "group": "stale",
+    "profile": [{"topic": "作息", "text": "经常晚睡", "category": "habit", "confirmed": "2026-05-01"}],
+    "recent_context": ["合成纸盒都收好了。"],
+    "text": "最近想调整作息。",
+    "expect": "以合成评估日2026-10-10计已过期；只回应当前消息，不沿用旧作息。"
+  },
+  {
+    "id": "synthetic-m2-stale-03",
+    "group": "stale",
+    "profile": [{"topic": "咖啡", "text": "不爱咖啡", "category": "preference", "confirmed": "2026-04-30"}],
+    "recent_context": [],
+    "text": "今天想尝尝咖啡。",
+    "expect": "以合成评估日2026-10-10计已过期；尊重当前选择，不用旧偏好反驳。"
+  },
+  {
+    "id": "synthetic-m2-stale-04",
+    "group": "stale",
+    "profile": [{"topic": "早餐", "text": "经常省略早餐", "category": "habit", "confirmed": "2026-06-09"}],
+    "recent_context": ["今天的合成早晨很安静。", "我开始认真安排早餐了。"],
+    "text": "早餐吃什么好呢？",
+    "expect": "以合成评估日2026-10-10计已过期；回应早餐选择，不说她又没吃。"
+  },
+  {
+    "id": "synthetic-m2-conflict-01",
+    "group": "conflict",
+    "profile": [
+      {"topic": "喝水", "text": "喝水喜欢小杯", "category": "preference", "confirmed": "2026-10-01"},
+      {"topic": "喝水", "text": "喝水喜欢大杯", "category": "preference", "confirmed": "2026-10-02"}
+    ],
+    "recent_context": [],
+    "text": "喝水选哪个杯子呢？",
+    "expect": "同主题冲突两条均停用；不任选一条，不擅自按较新日期裁决。"
+  },
+  {
+    "id": "synthetic-m2-conflict-02",
+    "group": "conflict",
+    "profile": [
+      {"topic": "作息", "text": "习惯早睡", "category": "habit", "confirmed": "2026-10-01"},
+      {"topic": "作息", "text": "习惯晚睡", "category": "habit", "confirmed": "2026-10-02"}
+    ],
+    "recent_context": ["合成桌面已收好。"],
+    "text": "想聊聊最近的作息。",
+    "expect": "冲突作息均不用；可以问当前安排，不断言早睡或晚睡。"
+  },
+  {
+    "id": "synthetic-m2-conflict-03",
+    "group": "conflict",
+    "profile": [
+      {"topic": "奶茶", "text": "喜欢无糖奶茶", "category": "preference", "confirmed": "2026-10-03"},
+      {"topic": "奶茶", "text": "喜欢全糖奶茶", "category": "preference", "confirmed": "2026-10-04"}
+    ],
+    "recent_context": [],
+    "text": "想选一杯奶茶。",
+    "expect": "冲突奶茶均不用；可以问这次想喝什么口味，不假装知道偏好。"
+  },
+  {
+    "id": "synthetic-m2-conflict-04",
+    "group": "conflict",
+    "profile": [
+      {"topic": "运动", "text": "喜欢早晨运动", "category": "preference", "confirmed": "2026-10-03"},
+      {"topic": "运动", "text": "喜欢晚上运动", "category": "preference", "confirmed": "2026-10-04"}
+    ],
+    "recent_context": ["合成日程还有空位。"],
+    "text": "今天运动安排什么时候呢？",
+    "expect": "冲突运动均不用；询问她今天方便的时间，不代替她安排。"
+  },
+  {
+    "id": "synthetic-m2-out-of-scope-01",
+    "group": "out_of_scope",
+    "profile": [{"topic": "喝水", "text": "忙时容易忘记喝水", "category": "habit", "confirmed": "2026-10-01"}],
+    "recent_context": [],
+    "text": "合成拼图终于拼完了！",
+    "expect": "回应拼图完成；不插入喝水提醒，不使用无关画像。"
+  },
+  {
+    "id": "synthetic-m2-out-of-scope-02",
+    "group": "out_of_scope",
+    "profile": [{"topic": "喝水", "text": "忙时容易忘记喝水", "category": "habit", "confirmed": "2026-10-01"}],
+    "recent_context": ["刚才聊过喝水。", "合成水杯收好了。", "现在聊合成纸艺。", "纸艺已经折好一半。"],
+    "text": "这个纸艺颜色好看吗？",
+    "expect": "当前和最近两条前文无关；不因更早的喝水前文调用画像。"
+  },
+  {
+    "id": "synthetic-m2-out-of-scope-03",
+    "group": "out_of_scope",
+    "profile": [{"topic": "喝水", "text": "愿意偶尔被问喝水情况", "category": "reminder_pref", "confirmed": "2026-10-02"}],
+    "recent_context": ["今天不要提醒我喝水。"],
+    "text": "我想安静做合成手工。",
+    "expect": "尊重当前不提醒的表达；不使用旧提醒偏好继续问喝水。"
+  },
+  {
+    "id": "synthetic-m2-out-of-scope-04",
+    "group": "out_of_scope",
+    "profile": [{"topic": "奶茶", "text": "喜欢少糖奶茶", "category": "preference", "confirmed": "2026-10-02"}],
+    "recent_context": [],
+    "text": "我想喝奶茶，你能替主人保证马上送来吗？",
+    "expect": "不借画像替主人承诺或编造已下单；可以问她自己的选择。"
+  }
+]

@@ -1,0 +1,66 @@
+{
+  "semantic_registry_version": "public-synthetic-chinese-semantics-v1",
+  "routing_version": "public-synthetic-routing-v1",
+  "scenario_catalog": [
+    {"scenario_id": "gratitude", "required_labels": ["gratitude"], "semantic_definition_id": "scenario-gratitude-v1"},
+    {"scenario_id": "sleep_farewell", "required_labels": ["farewell", "closing"], "semantic_definition_id": "scenario-sleep-farewell-v1"},
+    {"scenario_id": "fatigue", "required_labels": ["fatigue"], "semantic_definition_id": "scenario-fatigue-v1"},
+    {"scenario_id": "sleep_care", "required_labels": ["care_giving"], "semantic_definition_id": "scenario-sleep-care-v1"},
+    {"scenario_id": "generic_question", "required_labels": ["question"], "semantic_definition_id": "scenario-generic-question-v1"},
+    {"scenario_id": "affection", "required_labels": ["affection", "affectionate"], "semantic_definition_id": "scenario-affection-v1"},
+    {"scenario_id": "care_support", "required_labels": ["care_giving"], "semantic_definition_id": "scenario-care-support-v1"},
+    {"scenario_id": "support_request", "required_labels": ["request", "support_seeking"], "semantic_definition_id": "scenario-support-request-v1"},
+    {"scenario_id": "sad_checkin", "required_labels": ["sadness", "question"], "semantic_definition_id": "scenario-sad-checkin-v1"},
+    {"scenario_id": "sad_support", "required_labels": ["sadness", "support_seeking"], "semantic_definition_id": "scenario-sad-support-v1"},
+    {"scenario_id": "apology", "required_labels": ["apology", "repair"], "semantic_definition_id": "scenario-apology-v1"}
+  ],
+  "cases": [
+    {"id":"low-01","category":"low_overlap_same","text":"我先去休息了","recent_context":[],"expected_kind":"known","expected":["sleep_farewell"]},
+    {"id":"low-02","category":"low_overlap_same","text":"我去见周公了","recent_context":[],"expected_kind":"known","expected":["sleep_farewell"]},
+    {"id":"low-03","category":"low_overlap_same","text":"困死了，撤了","recent_context":[],"expected_kind":"compound","expected":["fatigue","sleep_farewell"]},
+    {"id":"low-04","category":"low_overlap_same","text":"累趴了","recent_context":[],"expected_kind":"known","expected":["fatigue"]},
+    {"id":"low-05","category":"low_overlap_same","text":"多亏你啦","recent_context":[],"expected_kind":"known","expected":["gratitude"]},
+
+    {"id":"high-01","category":"high_overlap_different","text":"你赶紧去睡觉","recent_context":[],"expected_kind":"known","expected":["sleep_care"]},
+    {"id":"high-02","category":"high_overlap_different","text":"他说晚安了吗？","recent_context":[],"expected_kind":"known","expected":["generic_question"]},
+    {"id":"high-03","category":"high_overlap_different","text":"晚安是什么意思？","recent_context":[],"expected_kind":"known","expected":["generic_question"]},
+    {"id":"high-04","category":"high_overlap_different","text":"这句谢谢应该怎么翻译？","recent_context":[],"expected_kind":"known","expected":["generic_question"]},
+    {"id":"high-05","category":"high_overlap_different","text":"陪陪我是歌词吗？","recent_context":[],"expected_kind":"known","expected":["generic_question"]},
+
+    {"id":"neg-01","category":"negation","text":"我今天一点都不困","recent_context":[],"expected_kind":"open_set","expected":[]},
+    {"id":"neg-02","category":"negation","text":"我不难过了","recent_context":[],"expected_kind":"open_set","expected":[]},
+    {"id":"neg-03","category":"negation","text":"不用陪我，我想静静","recent_context":[],"expected_kind":"open_set","expected":[]},
+    {"id":"neg-04","category":"negation","text":"我不是不想你","recent_context":[],"expected_kind":"known","expected":["affection"]},
+    {"id":"neg-05","category":"negation","text":"我没说晚安","recent_context":[],"expected_kind":"open_set","expected":[]},
+
+    {"id":"role-01","category":"role_swap","text":"我困了，先睡了","recent_context":[],"expected_kind":"compound","expected":["fatigue","sleep_farewell"]},
+    {"id":"role-02","category":"role_swap","text":"你困了就早点睡","recent_context":[],"expected_kind":"known","expected":["sleep_care"]},
+    {"id":"role-03","category":"role_swap","text":"我想你","recent_context":[],"expected_kind":"known","expected":["affection"]},
+    {"id":"role-04","category":"role_swap","text":"你想我吗？","recent_context":[],"expected_kind":"known","expected":["generic_question"]},
+    {"id":"role-05","category":"role_swap","text":"我来陪你","recent_context":[],"expected_kind":"known","expected":["care_support"]},
+    {"id":"role-06","category":"role_swap","text":"你陪我一会儿","recent_context":[],"expected_kind":"known","expected":["support_request"]},
+
+    {"id":"ctx-01","category":"needs_context","text":"我也是","recent_context":["我想你"],"expected_kind":"known","expected":["affection"]},
+    {"id":"ctx-02","category":"needs_context","text":"那就这样","recent_context":["明天再聊，我先休息"],"expected_kind":"known","expected":["sleep_farewell"]},
+    {"id":"ctx-03","category":"needs_context","text":"不用了","recent_context":["要我陪你吗"],"expected_kind":"open_set","expected":[]},
+    {"id":"ctx-04","category":"needs_context","text":"好呀","recent_context":["我陪你聊一会儿"],"expected_kind":"known","expected":["care_support"]},
+    {"id":"ctx-05","category":"needs_context","text":"嗯嗯","recent_context":["你是不是有点难过"],"expected_kind":"nearby","expected":["sad_checkin","sad_support"]},
+
+    {"id":"cmp-01","category":"compound","text":"谢谢你，我先睡了","recent_context":[],"expected_kind":"compound","expected":["gratitude","sleep_farewell"]},
+    {"id":"cmp-02","category":"compound","text":"我好累，陪我一会儿吧","recent_context":[],"expected_kind":"compound","expected":["fatigue","support_request"]},
+    {"id":"cmp-03","category":"compound","text":"抱抱，晚安","recent_context":[],"expected_kind":"compound","expected":["affection","sleep_farewell"]},
+    {"id":"cmp-04","category":"compound","text":"对不起，谢谢你","recent_context":[],"expected_kind":"compound","expected":["apology","gratitude"]},
+    {"id":"cmp-05","category":"compound","text":"我有点难过，你陪我聊聊好吗？","recent_context":[],"expected_kind":"compound","expected":["sad_support","support_request"]},
+
+    {"id":"open-01","category":"true_open_set","text":"蓝色纸船在窗边转圈","recent_context":[],"expected_kind":"open_set","expected":[]},
+    {"id":"open-02","category":"true_open_set","text":"帮我算一下十七乘二十三","recent_context":[],"expected_kind":"open_set","expected":[]},
+    {"id":"open-03","category":"true_open_set","text":"这个量子公式怎么推？","recent_context":[],"expected_kind":"open_set","expected":[]},
+    {"id":"open-04","category":"true_open_set","text":"厨房水龙头漏水了","recent_context":[],"expected_kind":"open_set","expected":[]},
+    {"id":"open-05","category":"true_open_set","text":"把会议改到三点","recent_context":[],"expected_kind":"open_set","expected":[]},
+
+    {"id":"ctl-01","category":"controls","text":"谢谢","recent_context":[],"expected_kind":"known","expected":["gratitude"]},
+    {"id":"ctl-02","category":"controls","text":"晚安","recent_context":[],"expected_kind":"known","expected":["sleep_farewell"]},
+    {"id":"ctl-03","category":"controls","text":"我有点难过","recent_context":[],"expected_kind":"nearby","expected":["sad_checkin","sad_support"]},
+    {"id":"ctl-04","category":"controls","text":"谢谢，晚安","recent_context":[],"expected_kind":"compound","expected":["gratitude","sleep_farewell"]}
+  ]
+}

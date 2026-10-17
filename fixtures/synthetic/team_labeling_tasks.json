@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "labels": [
+    {
+      "code": "A",
+      "name": "回应",
+      "hint": "回应对方当前表达或感受"
+    },
+    {
+      "code": "B",
+      "name": "提问",
+      "hint": "询问新的具体情况"
+    }
+  ],
+  "items": {
+    "demo-001": {
+      "context": [],
+      "partner": [
+        "合成示例：今天做完了一道练习题。"
+      ],
+      "reply": [
+        "合成示例：不错呀。"
+      ]
+    },
+    "demo-002": {
+      "context": [],
+      "partner": [
+        "合成示例：我准备去图书馆。"
+      ],
+      "reply": [
+        "合成示例：准备看哪一类书？"
+      ]
+    }
+  },
+  "rounds": [
+    {
+      "id": "demo",
+      "title": "合成练习任务",
+      "opens_on": null,
+      "order": [
+        "demo-001",
+        "demo-002"
+      ]
+    }
+  ]
+}

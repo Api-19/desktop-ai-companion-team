@@ -1,0 +1,35 @@
+[
+  {
+    "schema_version": 1,
+    "conversation_id": "synthetic-conversation",
+    "message_id": "synthetic-message-2",
+    "timestamp": "2026-07-17T10:31:00+08:00",
+    "source_speaker_id": "synthetic-owner",
+    "source_speaker_name": "Synthetic Owner",
+    "direction": "outbound",
+    "content_type": "text",
+    "text": "synthetic reply"
+  },
+  {
+    "schema_version": 1,
+    "conversation_id": "synthetic-conversation",
+    "message_id": "synthetic-message-1",
+    "timestamp": "2026-07-17T10:30:00+08:00",
+    "source_speaker_id": "synthetic-contact",
+    "source_speaker_name": "Synthetic Contact",
+    "direction": "inbound",
+    "content_type": "image",
+    "text": null
+  },
+  {
+    "schema_version": 1,
+    "conversation_id": "synthetic-conversation",
+    "message_id": "synthetic-message-3",
+    "timestamp": "2026-07-17T10:31:00+08:00",
+    "source_speaker_id": "synthetic-owner",
+    "source_speaker_name": null,
+    "direction": "outbound",
+    "content_type": "other",
+    "text": ""
+  }
+]
