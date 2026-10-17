@@ -46,3 +46,13 @@
 ## 路线说明的共享边界
 
 本仓库新增的 [团队路线 v2](TECHNICAL_ROUTE_V2.md) 是重新编写的通用方法与进度说明，附 [可派发任务](TEAM_TASKS.md)。没有复制原项目路线文档中的私人案例日期/数量、切分规模、个人关系分析结论、私人标注进度或个人机器信息。该审阅只针对获准查看的路线说明和共享代码，没有读取私人数据目录或评分答案。
+
+
+首轮远端修复运行中，Linux 原始结果为 `6759 passed, 85 skipped in 124.45s`。Mac 为 `1 failed, 6842 passed, 1 skipped in 285.33s`，唯一失败是多轮排期测试给第一轮仅留了 0.6 秒，受共享 runner 调度影响发生漏槽。
+
+该测试随后调整为在 4 秒观测期内按 3 秒间隔完成两轮；仍断言两轮均成功、没有失败/中止/漏槽和没有重复事件，不改变产品的心跳、超时、停止上界或正式两小时判定。新增的诊断输出仅含轮次计数与清理计数。旧的故意重叠/漏槽测试和短时运行不得算作两小时通过的检查继续保留。最终结果以 [仓库最新 Actions](https://github.com/Api-19/desktop-ai-companion-team/actions) 为准。
+
+
+计时测试修正后的本机聚焦验证：
+
+`env PYTHONPATH=src .venv/bin/python -m pytest -q tests/integration/test_bodylink_soak_processes.py::test_steady_run_completes_multiple_separate_slots tests/integration/test_bodylink_soak_processes.py::test_steady_run_does_not_overlap_or_replay_slots tests/scripts/test_bodylink_soak.py::test_all_real_run_tests_use_explicit_short_duration` → exit 0，`3 passed in 5.98s`。

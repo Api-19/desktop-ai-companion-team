@@ -255,8 +255,9 @@ def test_unfinished_turn_has_bounded_grace_and_is_aborted(monkeypatch):
 
 
 def test_steady_run_completes_multiple_separate_slots():
-    report = soak.run_soak(soak.RunConfig(0.9, 0.6, "answer"))
-    assert report["run_complete"]
+    # This checks scheduling, not subsecond latency on a shared CI runner.
+    report = soak.run_soak(soak.RunConfig(4, 3, "answer"))
+    assert report["run_complete"], {"turns": report["turns"], "cleanup": report["cleanup"]}
     assert report["turns"] == dict(planned=2, started=2, completed=2, failed=0, aborted=0, missed=0)
     assert all(event["values"].get("duplicates", 0) == 0 for event in report["events"])
 
