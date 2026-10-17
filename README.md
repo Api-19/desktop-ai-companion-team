@@ -16,7 +16,7 @@ env PYTHONPATH=src .venv/bin/python -m companion.cli healthcheck
 env PYTHONPATH=src .venv/bin/python -m pytest -q tests
 ```
 
-`local-speech` 安装本地语音依赖，不下载语音模型。完整测试还会使用其传递依赖 NumPy；只学习对话和隐私模块时可先安装 `.[dev]` 并仅运行对应目录的测试。Windows 可用 `.venv\Scripts\python.exe`，并在 PowerShell 用 `$env:PYTHONPATH = "src"` 设置路径；当前共享版验证范围见 [验证记录](docs/VALIDATION.md)。
+`local-speech` 安装本地语音依赖，不下载语音模型。完整测试还会使用其传递依赖 NumPy；只学习对话和隐私模块时可先安装 `.[dev]` 并仅运行对应目录的测试。Windows 的解释器路径为 `.venv\Scripts\python.exe`，PowerShell 可用 `$env:PYTHONPATH = "src"` 设置路径。部分存储、管理和稳定性工具有 POSIX / macOS 限制，以上整套测试尚未在 Windows 验收。CI 分别验证 Mac 和 Linux，并明确列出平台跳过项；详见 [验证记录](docs/VALIDATION.md)。
 
 ## 代码导航
 
@@ -35,6 +35,8 @@ env PYTHONPATH=src .venv/bin/python -m pytest -q tests
 源码文件名中的 `private` 指隐私数据处理功能，可以共享；实际个人数据和处理产物不能提交。`config/privacy/veiled_terms.json` 是通用隐私风险词表，不是个人语言画像。
 
 ## 团队协作
+
+先读 [技术路线 v2 与实现进度](docs/TECHNICAL_ROUTE_V2.md) 和 [可派发任务](docs/TEAM_TASKS.md)。
 
 按 [协作与数据边界](docs/COLLABORATION.md) 分配任务，通过分支和 Pull Request 提交代码。
 

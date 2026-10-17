@@ -8,6 +8,8 @@
 
 ## 任务分工
 
+方法目标与已实现范围见 [团队技术路线](TECHNICAL_ROUTE_V2.md)，具体可派发工作、可写范围和验收条件见 [任务清单](TEAM_TASKS.md)。
+
 | 任务 | 主要目录 | 验证入口 |
 | --- | --- | --- |
 | 标注工具、任务格式、标注体验 | `admin/labeling.py`、`admin/focus_labeling.py` | `tests/admin/test_label_pages.py`、`test_focus_label_pages.py` |

@@ -22,3 +22,7 @@ env PYTHONPATH=src .venv/bin/python -m pytest -q tests/contracts/test_body_proto
 - `scripts/bodylink_soak*.py`：通信稳定性实验工具；先阅读 `--help` 和对应 `tests/scripts/test_bodylink_soak*.py`，报告放在忽略的 `test-results/` 下。
 
 初次加入团队不需要执行部署、生成证书或连接真实设备；先通过无设备测试，再按分配的任务推进。
+
+## 平台验证
+
+GitHub Actions 分别在 Mac 和 Linux 运行相同的完整测试命令。`bodylink_soak` 的真实进程与 libproc 资源采集明确仅支持 macOS，相关原生测试在 Linux 标注跳过；通用协议、传输、隐私、参数边界与不支持平台拒绝测试仍执行。Mac 的短时合成测试也不能代替两小时真机稳定性证明。Windows 完整支持另行验证。
