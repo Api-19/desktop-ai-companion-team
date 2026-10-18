@@ -1,0 +1,203 @@
+{
+  "protocol_version": "rcpem-public-pilot-v1.0",
+  "material_version": "synthetic-training-v1",
+  "annotator_id": "demo-only",
+  "phase": "training",
+  "records": [
+    {
+      "event_id": "synthetic-001",
+      "material_ref": "synthetic-example-manifest",
+      "training_material": {
+        "synthetic": true,
+        "context_truncated": false,
+        "missing_context": false,
+        "context": [
+          {
+            "message_id": "c1",
+            "speaker_id": "speaker-a",
+            "text": "报告改到下周。"
+          }
+        ],
+        "partner": [
+          {
+            "message_id": "p1",
+            "speaker_id": "speaker-b",
+            "text": "准备了这么久却临时改期，我很烦。"
+          }
+        ],
+        "reply": [
+          {
+            "message_id": "r1",
+            "speaker_id": "speaker-a",
+            "text": "我以前也遇到过。"
+          },
+          {
+            "message_id": "r2",
+            "speaker_id": "speaker-a",
+            "text": "准备这么久被改期，难怪会烦。"
+          },
+          {
+            "message_id": "r3",
+            "speaker_id": "speaker-a",
+            "text": "可以先问问负责人。"
+          }
+        ],
+        "focus_units": [
+          {
+            "id": "u1",
+            "message_id": "p1",
+            "text": "准备了这么久却临时改期"
+          },
+          {
+            "id": "u2",
+            "message_id": "p1",
+            "text": "我很烦"
+          }
+        ],
+        "g_candidates": []
+      },
+      "f_step1": {
+        "locked": true,
+        "reply_seen_before_step1": false,
+        "status": "judged",
+        "acceptable": [
+          "u1",
+          "u2"
+        ],
+        "preferred": "no_unique",
+        "mode": "units",
+        "reason": "教学示范：事件与感受都可承接，没有唯一首选"
+      },
+      "g_status": "not_applicable",
+      "g_reply_seen_before_judgment": false,
+      "g_pairs": [],
+      "f_step2": {
+        "status": "judged",
+        "mode": "units",
+        "responded_groups": [
+          [
+            "u1"
+          ],
+          [
+            "u2"
+          ]
+        ],
+        "reason": "示范第一段承接遭遇，第二段认可感受；第三段继续承接改期事件"
+      },
+      "s": {
+        "segments": [
+          {
+            "id": "s1",
+            "spans": [
+              {
+                "message_id": "r1",
+                "start": 0,
+                "end": 8,
+                "text": "我以前也遇到过。"
+              }
+            ],
+            "status": "judged",
+            "actions": [
+              "INFORM"
+            ],
+            "candidates": [],
+            "subtype": null,
+            "modifiers": {
+              "humor": {
+                "value": "absent",
+                "evidence": ""
+              },
+              "affection": {
+                "value": "absent",
+                "evidence": ""
+              },
+              "seek_care": {
+                "value": "absent",
+                "evidence": ""
+              },
+              "self_disclosure": {
+                "value": "present",
+                "evidence": "我以前也遇到过"
+              }
+            },
+            "reason": ""
+          },
+          {
+            "id": "s2",
+            "spans": [
+              {
+                "message_id": "r2",
+                "start": 0,
+                "end": 14,
+                "text": "准备这么久被改期，难怪会烦。"
+              }
+            ],
+            "status": "judged",
+            "actions": [
+              "VALIDATE"
+            ],
+            "candidates": [],
+            "subtype": null,
+            "modifiers": {
+              "humor": {
+                "value": "absent",
+                "evidence": ""
+              },
+              "affection": {
+                "value": "absent",
+                "evidence": ""
+              },
+              "seek_care": {
+                "value": "absent",
+                "evidence": ""
+              },
+              "self_disclosure": {
+                "value": "absent",
+                "evidence": ""
+              }
+            },
+            "reason": ""
+          },
+          {
+            "id": "s3",
+            "spans": [
+              {
+                "message_id": "r3",
+                "start": 0,
+                "end": 9,
+                "text": "可以先问问负责人。"
+              }
+            ],
+            "status": "judged",
+            "actions": [
+              "SUGGEST"
+            ],
+            "candidates": [],
+            "subtype": null,
+            "modifiers": {
+              "humor": {
+                "value": "absent",
+                "evidence": ""
+              },
+              "affection": {
+                "value": "absent",
+                "evidence": ""
+              },
+              "seek_care": {
+                "value": "absent",
+                "evidence": ""
+              },
+              "self_disclosure": {
+                "value": "absent",
+                "evidence": ""
+              }
+            },
+            "reason": ""
+          }
+        ]
+      },
+      "unit_objections": [],
+      "g_reason": "独立编造的教学例未准备候选历史，本例只演示 F/S；G 不计入配对分母。"
+    }
+  ]
+}
