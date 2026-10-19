@@ -56,3 +56,19 @@
 计时测试修正后的本机聚焦验证：
 
 `env PYTHONPATH=src .venv/bin/python -m pytest -q tests/integration/test_bodylink_soak_processes.py::test_steady_run_completes_multiple_separate_slots tests/integration/test_bodylink_soak_processes.py::test_steady_run_does_not_overlap_or_replay_slots tests/scripts/test_bodylink_soak.py::test_all_real_run_tests_use_explicit_short_duration` → exit 0，`3 passed in 5.98s`。
+
+## PR #4 配置提示与握手测试修复（2026-10-19）
+
+配置失败提示只显示固定类别，不回显异常原文、配置值或本机路径；README 已补对应排查表。Node 子进程测试显式使用 UTF-8 解码。这些调整不构成 Windows 原生产品验收。
+
+旧 Ubuntu 检查唯一失败发生在集成测试建连阶段：身体收到 Welcome 后，大脑的 session-start 回调尚未写入 session ID，测试立即比较两端状态。传输约定允许先发 Welcome 再执行大脑回调，因此修复测试夹具，在原有 10 秒上限内等待两端注册同一 session；未改变产品回调顺序、超时或重连策略。
+
+新增测试通过事件控制故意延后大脑回调，在旧夹具上复现 `session_id != None` 的断言失败（1 failed），修复后连同相关用例通过。保留重连身份、旧轮次丢弃、音频清理等原断言，没有跳过失败用例或放宽会话身份要求。
+
+| 命令 | 退出码 | 原始结果 |
+| --- | --- | --- |
+| `env PYTHONPATH=src .venv/bin/python -m pytest -q tests/test_cli.py tests/runtime/test_settings.py tests/scripts/test_ticl_review_pack.py tests/integration/test_bodylink_session_lifecycle.py` | 0 | 97 passed in 8.71s |
+| `.venv/bin/ruff check src/companion/cli.py src/companion/runtime/settings.py tests/test_cli.py tests/scripts/test_ticl_review_pack.py tests/integration/test_bodylink_session_lifecycle.py` | 0 | All checks passed! |
+| `.venv/bin/python scripts/verify_no_private_data.py` | 0 | No private paths or secret patterns found in tracked and unignored new files. |
+
+已扫描 SettingsError / load_settings 的生产构造与脚本入口。完整测试和 Mac/Linux CI 的最终证据附在 [PR #4](https://github.com/Api-19/desktop-ai-companion-team/pull/4)，以对应提交的实际检查结果为准。测试只使用合成数据与本地模拟，不代表真实模型或硬件验收。

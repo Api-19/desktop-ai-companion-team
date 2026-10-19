@@ -5,6 +5,7 @@ import struct
 import threading
 import time
 from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import ExitStack
 from pathlib import Path
 
@@ -202,7 +203,11 @@ class ConnectedBody:
         self.core.start(self.client)
         self.client.start()
         assert self.started.wait(TIMEOUT), "body handshake did not complete"
-        assert self.session_id == rig.link.current_session_id
+        # Welcome may reach the body before the brain's started callback runs.
+        deadline = time.monotonic() + TIMEOUT
+        while self.session_id != rig.link.current_session_id:
+            assert time.monotonic() < deadline, "brain did not register the body session"
+            time.sleep(0.001)
 
     def on_started(self, session_id: str) -> None:
         self.session_id = session_id
@@ -400,6 +405,36 @@ def make_lifecycle(tmp_path: Path, request: pytest.FixtureRequest) -> Callable:
         return rig, rig.start()
 
     return make
+
+
+def test_body_welcome_can_precede_brain_session_callback(
+    make_lifecycle: Callable, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    brain_release = threading.Event()
+    session_read = threading.Event()
+    original_started = BrainBodyLink._on_session_started
+    original_session = BrainBodyLink.current_session_id.fget
+
+    def delayed_started(link: BrainBodyLink, session_id: str, hello: object) -> None:
+        assert brain_release.wait(TIMEOUT), "brain callback was not released"
+        original_started(link, session_id, hello)
+
+    def observed_session(link: BrainBodyLink) -> str | None:
+        value = original_session(link)
+        session_read.set()
+        return value
+
+    monkeypatch.setattr(BrainBodyLink, "_on_session_started", delayed_started)
+    monkeypatch.setattr(BrainBodyLink, "current_session_id", property(observed_session))
+    with ThreadPoolExecutor(max_workers=1) as executor:
+        connection = executor.submit(make_lifecycle, "recognize")
+        try:
+            assert session_read.wait(TIMEOUT), "body did not read the brain session"
+        finally:
+            brain_release.set()
+        rig, body = connection.result(timeout=TIMEOUT)
+    assert body.session_id is not None
+    assert body.session_id == rig.link.current_session_id
 
 
 def _discard_old_turn(rig: Lifecycle, body: ConnectedBody) -> ConnectedBody:

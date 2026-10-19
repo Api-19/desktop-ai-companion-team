@@ -18,6 +18,21 @@ env PYTHONPATH=src .venv/bin/python -m pytest -q tests
 
 `local-speech` 安装本地语音依赖，不下载语音模型。完整测试还会使用其传递依赖 NumPy；只学习对话和隐私模块时可先安装 `.[dev]` 并仅运行对应目录的测试。Windows 的解释器路径为 `.venv\Scripts\python.exe`，PowerShell 可用 `$env:PYTHONPATH = "src"` 设置路径。部分存储、管理和稳定性工具有 POSIX / macOS 限制，以上整套测试尚未在 Windows 验收。CI 分别验证 Mac 和 Linux，并明确列出平台跳过项；详见 [验证记录](docs/VALIDATION.md)。
 
+## 配置错误排查
+
+`healthcheck` 配置失败时退出码为 2，只输出固定错误类别，不回显配置内容、异常原文、环境变量值或本机路径。
+
+| 错误提示 | 检查方式 |
+| --- | --- |
+| `configuration file not found` | 在仓库根目录运行，或用 `healthcheck --project-root <仓库路径>` 指定含 `config/default.toml` 的目录；显式配置文件也必须存在 |
+| `invalid TOML syntax` | 检查配置文件的引号、括号及 TOML 语法 |
+| `configuration file could not be accessed` | 检查文件是否可读、目录是否可访问 |
+| `invalid configuration fields or paths` | 对照 `config/default.toml` 检查必填字段、允许值和路径；私人数据路径不能经过符号链接 |
+| `unrecognized COMPANION_ environment variable` | 只保留下列支持的 `COMPANION_` 变量，检查其他变量名是否拼错 |
+| `invalid configuration` | 通用配置失败；先核对以上项目，报告时只描述类别，不贴私人配置或凭据 |
+
+支持的环境变量：`COMPANION_ENVIRONMENT`、`COMPANION_LOG_LEVEL`、`COMPANION_PRIVATE_DATA_DIR`、`COMPANION_RUNTIME_DATA_DIR`、`COMPANION_TEST_RESULTS_DIR`。允许环境为 `development / test / production`，日志级别为 `DEBUG / INFO / WARNING / ERROR / CRITICAL`。
+
 ## 代码导航
 
 | 路径 | 内容 |
