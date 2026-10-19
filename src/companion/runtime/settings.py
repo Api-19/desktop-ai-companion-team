@@ -12,6 +12,10 @@ from pydantic import BaseModel, ConfigDict, ValidationError
 class SettingsError(RuntimeError):
     """Raised when runtime configuration cannot be loaded safely."""
 
+    def __init__(self, message: str, *, reason: str = "invalid_fields") -> None:
+        super().__init__(message)
+        self.reason = reason
+
 
 class Settings(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -64,7 +68,9 @@ def load_settings(
         key for key in environment if key.startswith("COMPANION_") and key not in ENV_TO_FIELD
     )
     if unknown:
-        raise SettingsError(f"unknown COMPANION_ setting: {unknown[0]}")
+        raise SettingsError(
+            f"unknown COMPANION_ setting: {unknown[0]}", reason="unknown_environment"
+        )
 
     try:
         values = _read_companion_table(root / "config" / "default.toml")
@@ -88,4 +94,14 @@ def load_settings(
         tomllib.TOMLDecodeError,
         ValidationError,
     ) as error:
-        raise SettingsError(f"invalid configuration ({type(error).__name__})") from None
+        if isinstance(error, FileNotFoundError):
+            reason = "missing_file"
+        elif isinstance(error, tomllib.TOMLDecodeError):
+            reason = "invalid_toml"
+        elif isinstance(error, OSError):
+            reason = "file_access"
+        else:
+            reason = "invalid_fields"
+        raise SettingsError(
+            f"invalid configuration ({type(error).__name__})", reason=reason
+        ) from None
