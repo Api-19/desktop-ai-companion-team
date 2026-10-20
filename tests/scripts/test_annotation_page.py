@@ -339,11 +339,7 @@ if (!AnnotationCore.completion(state).length) throw Error('missing action accept
 process.stdout.write(JSON.stringify(output));
 """
         )
-        result = subprocess.run(
-            [node, "-e", code, json.dumps([p, p2, data], ensure_ascii=False)],
-            text=True,
-            capture_output=True,
-        )
+        result = run_node(node, code, [p, p2, data])
         assert result.returncode == 0, result.stderr
         output = tmp_path / f"{stage}.json"
         output.write_text(result.stdout)
@@ -360,16 +356,23 @@ process.stdout.write(JSON.stringify(output));
         assert checked.returncode == 0, checked.stdout + checked.stderr
 
 
+def run_node(node, code, payload):
+    # Script and payload go through stdin: Linux caps a single argv string at 128 KiB.
+    argv = json.dumps(json.dumps(payload, ensure_ascii=False))
+    return subprocess.run(
+        [node, "-"],
+        input=f"process.argv[1] = {argv};\n{code}",
+        text=True,
+        capture_output=True,
+    )
+
+
 def run_core(script, payload):
     node = shutil.which("node")
     if not node:
         pytest.skip("node unavailable")
     core = re.search(r'<script id="annotation-core">(.*?)</script>', PAGE.read_text(), re.S)[1]
-    result = subprocess.run(
-        [node, "-e", core + "\n" + script, json.dumps(payload, ensure_ascii=False)],
-        text=True,
-        capture_output=True,
-    )
+    result = run_node(node, core + "\n" + script, payload)
     assert result.returncode == 0, result.stderr
     return result.stdout
 
