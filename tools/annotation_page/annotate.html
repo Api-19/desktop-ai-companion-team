@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'none'; img-src data:; base-uri 'none'; form-action 'none'">
+<title>v1.1 离线标注页</title>
+<style>
+:root{font:16px/1.65 system-ui,sans-serif;color:#1c2b33;background:#f2f5f6;accent-color:#12646c}body{margin:0}main{max-width:1100px;margin:auto;padding:24px}h1{font-size:1.7rem}h2{font-size:1.3rem}h3{font-size:1.1rem}section,.card{background:white;border:1px solid #ccd8dc;border-radius:10px;padding:18px;margin:16px 0}fieldset{border:1px solid #ccd8dc;border-radius:6px;margin:12px 0;padding:12px}legend{font-weight:650}label{display:inline-block;margin:4px 14px 4px 0}input,select,textarea,button{font:inherit}input[type=text],textarea{max-width:95%;padding:7px;border:1px solid #9eaeb4;border-radius:4px}textarea{display:block;width:95%;min-height:60px}button{padding:7px 14px;margin:5px 8px 5px 0;border:1px solid #12646c;border-radius:5px;background:#edf8f7;color:#114e55;cursor:pointer}button:disabled{opacity:.5;cursor:default}input[type=file]{max-width:100%}.muted{color:#53656e;font-size:.9rem}.error{color:#9a2828;white-space:pre-wrap}.success{color:#175a44}.msg{white-space:pre-wrap;overflow-wrap:anywhere;border-left:3px solid #b6d8da;padding:8px 12px;margin:8px 0;background:#f4f9fa}.actions label{display:block}.feature{border-top:1px solid #dae2e5;padding-top:10px;margin-top:12px}.evidence-text{white-space:pre-wrap;user-select:text;background:#fff4d6;padding:12px;margin:8px 0}.boundary-text{white-space:pre-wrap;line-height:3}.boundary{padding:0 3px;margin:0 1px;border:1px dotted #8c9da2;background:white;color:#456}.boundary.on{background:#12646c;color:white}.toolbar{position:sticky;top:0;background:#f2f5f6ef;padding:8px 0;z-index:2}.tag{background:#e3eff0;padding:2px 8px;border-radius:4px}.listitem{border-bottom:1px solid #e3eaed;padding:6px 0}.definition{font-weight:400;color:#40565f}details{margin:10px 0}summary{cursor:pointer}small{display:block}button.danger{color:#9a2828;border-color:#9a2828}@media(max-width:650px){main{padding:12px}section,.card{padding:12px}}
+</style>
+</head>
+<body><main>
+<h1>F / S / G 离线标注 · v1.1</h1>
+<p>依据可见文字独立判断；不确定时记录原因。全部文件在本机处理。请先阅读同版试标指南。</p>
+<section id="start"><h2>开始 / 恢复本批</h2>
+<label>匿名标注者 ID <input id="annotator" type="text" autocomplete="off" placeholder="例如 member-a"></label>
+<label>阶段 <select id="phase"><option value="training">training 练习</option><option value="pilot">pilot 试标</option></select></label>
+<p><label>加载初始任务包（S-only 或 F/G stage1） <input id="package-file" type="file" accept=".json,application/json"></label></p>
+<p class="muted">使用相同匿名 ID、批次及材料版本加载同一个包，可恢复本浏览器草稿。F/G stage2 须等全批 F1、G 锁定后单独加载。不要把教学样例当作盲标包。</p>
+</section>
+<div id="notice" role="status" aria-live="polite"></div>
+<div id="workspace" hidden>
+<section><h2 id="batch-title"></h2><div id="declarations"></div>
+<label>导入已导出的 JSON 继续 <input id="import-file" type="file" accept=".json,application/json"></label>
+<p id="save-status" class="muted"></p></section>
+<div class="toolbar"><label>事件 <select id="event-select"></select></label><button id="previous">上一条</button><button id="next">下一条</button><button id="export">检查并导出</button><span id="progress" class="muted"></span></div>
+<section id="stage2-panel" hidden><h2>揭示目标回复</h2><p>全批 F1 和 G 均已锁定后，请加载负责人提供的同版 stage2 包。</p><input id="stage2-file" type="file" accept=".json,application/json"></section>
+<div id="event-view"></div><section id="errors" hidden aria-live="polite"></section>
+</div>
+</main>
+<script id="annotation-core">
+'use strict';
+const AnnotationCore = (() => {
+  const PROTOCOL = 'rcpem-public-pilot-v1.1';
+  const ACTIONS = {
+    ACK:'接收/理解反馈：表示听见、收到、理解，不额外回答事实或作出行动承诺',
+    INFORM:'回答/告知/解释：给出事实、经历、状态或原因，也含纠正事实',
+    ASK:'询问/澄清：确实希望对方提供或核实信息',
+    EVALUATE:'评价/立场：赞成、反对、判断好坏或表达偏好',
+    VALIDATE:'理解/认可体验：复述要点以核对理解，或明确承认对方感受和经历',
+    SUPPORT:'安慰/鼓励/宽慰：表达关切、陪伴或信心，以支持对方',
+    SUGGEST:'建议/劝告：提出有助于对方的做法，包括叮嘱提醒',
+    REQUEST:'请求/邀请：要求对方采取行动、给予资源/注意，或邀请共同活动',
+    COMMIT:'承诺/提供帮助：承担未来行动，或明确提出自己可提供的帮助',
+    REFUSE:'拒绝/设边界：拒绝请求、邀请或互动，要求停止越界行为',
+    SOCIAL:'社交/对话管理：问候、感谢、道歉、告别、明确开闭话题',
+    OTHER:'可识别但以上未覆盖的功能'
+  };
+  const FEATURES = {
+    humor:'可见的玩笑、夸张、调侃、搞怪表达',
+    affection:'明确表达喜欢、想念、亲昵称呼等',
+    seek_care:'明确索取陪伴、关注或安慰',
+    self_disclosure:'提供说话者自己的经历、状态、感受或偏好'
+  };
+  const REASONS = {context_missing:'上下文不足', ambiguous_intent:'意图歧义',
+    joke_or_serious:'玩笑或认真不明', multi_function:'不可分的多功能', boundary:'切分边界', other:'其他'};
+  const SUBTYPES = {COMMIT:['promise','offer'], SOCIAL:['greet','thank','apologize','close','topic_shift','other']};
+  const clone = x => JSON.parse(JSON.stringify(x));
+  const has = (o,k) => Object.prototype.hasOwnProperty.call(o,k);
+  const text = x => typeof x === 'string' && x.trim().length > 0;
+  const same = (a,b) => {
+    if (a===b) return true;
+    if (!a||!b||typeof a!=='object'||typeof b!=='object'||Array.isArray(a)!==Array.isArray(b)) return false;
+    const keys=Object.keys(a);
+    return keys.length===Object.keys(b).length&&keys.every(k=>has(b,k)&&same(a[k],b[k]));
+  };
+  const codePointOffset = (s,utf16Offset) => Array.from(s.slice(0,utf16Offset)).length;
+  const slice = (s,a,b) => Array.from(s).slice(a,b).join('');
+  const allIDs = e => e.context.concat(e.partner).map(m=>m.message_id);
+  function assert(ok, message) { if (!ok) throw Error(message); }
+  function validatePackage(p) {
+    assert(p && p.package_format === 'cped-annotation-package-v1' && p.protocol_version === PROTOCOL,'任务包格式或协议版本错误');
+    assert(text(p.material_version) && text(p.batch_id),'缺材料版本或批次 ID');
+    assert(['s_only','fg_stage1','fg_stage2'].includes(p.stage),'未知 stage');
+    assert(Array.isArray(p.events) && p.events.length,'任务包没有事件');
+    const eids = new Set();
+    for (const e of p.events) {
+      assert(e && text(e.event_id) && !eids.has(e.event_id),'事件 ID 缺失或重复'); eids.add(e.event_id);
+      const known = new Map();
+      function messages(ms) {
+        assert(Array.isArray(ms),'缺消息数组'); const ids = new Set();
+        for (const m of ms) {
+          assert(m && text(m.message_id) && text(m.speaker_id) && text(m.text),'消息结构错误');
+          assert(!ids.has(m.message_id),'消息 ID 重复'); ids.add(m.message_id);
+          assert(!known.has(m.message_id) || same(known.get(m.message_id),m),'消息 ID 冲突'); known.set(m.message_id,m);
+        }
+      }
+      function units(us,source) {
+        assert(Array.isArray(us) && us.length,'缺单元/片段'); const ids = new Set();
+        for (const u of us) {
+          assert(u && text(u.id) && !ids.has(u.id),'单元/片段 ID 错误'); ids.add(u.id);
+          assert(Array.isArray(u.spans) && u.spans.length,'缺 spans');
+          for (const s of u.spans) {
+            const m = source.get(s.message_id);
+            assert(m && Number.isInteger(s.start) && Number.isInteger(s.end) && s.start >= 0 && s.start < s.end && s.end <= Array.from(m.text).length && s.text === slice(m.text,s.start,s.end),'span 与原文码点切片不符');
+          }
+        }
+      }
+      if (p.stage !== 'fg_stage2') {
+        assert(['base','supplement'].includes(e.sample_role) && text(e.material_ref),'缺事件来源或 sample_role');
+        messages(e.context); messages(e.partner);
+      }
+      if (p.stage === 'fg_stage1') {
+        assert(!has(e,'reply') && !has(e,'segments'),'stage1 不能含 reply/segments');
+        units(e.f_units,known);
+        assert(Array.isArray(e.g_candidates),'缺 g_candidates'); const ids = new Set();
+        for (const c of e.g_candidates) {
+          assert(text(c.candidate_id) && !ids.has(c.candidate_id),'候选 ID 缺失或重复'); ids.add(c.candidate_id);
+          assert(c.c?.length && c.r?.length,'候选缺 c/r'); messages(c.c); messages(c.r);
+        }
+      } else {
+        messages(e.reply); assert(e.reply.length && typeof e.segmentation_diagnosis === 'boolean','缺回复或诊断标记');
+        units(e.segments,new Map(e.reply.map(m=>[m.message_id,m])));
+        const actual = e.segments.flatMap(u=>u.spans.flatMap(s=>Array.from({length:s.end-s.start},(_,i)=>[s.message_id,s.start+i])));
+        const expected = e.reply.flatMap(m=>Array.from(m.text,(_,i)=>[m.message_id,i]));
+        assert(same(actual,expected),'片段必须按顺序完整覆盖回复且不重叠');
+      }
+    }
+    return p;
+  }
+  function blankS(e) {
+    return {segments:e.segments.map(s=>({...clone(s),status:null,actions:[],candidates:[],subtype:null,
+      modifiers:Object.fromEntries(Object.keys(FEATURES).map(k=>[k,{value:null}]))})),segment_objections:[]};
+  }
+  function createState(pkg,annotator_id,phase) {
+    validatePackage(pkg); assert(pkg.stage !== 'fg_stage2','请先加载初始包');
+    const state = {package:clone(pkg),stage2:null,annotator_id,phase,
+      batch_declaration:{reply_seen:null,review_comments_read:null},event_exposure_exceptions:[],records:{}};
+    for (const e of pkg.events) {
+      const fg = pkg.stage === 'fg_stage1';
+      state.records[e.event_id] = {event_id:e.event_id,material_ref:e.material_ref,sample_role:e.sample_role,
+        f_step1:fg?{locked:false,reply_seen_before_step1:false,status:null,acceptable:[],preferred:null,mode:null,reason:''}:null,
+        f_step2:null,g_status:fg?(e.g_candidates.length?'annotated':'not_applicable'):null,
+        g_reply_seen_before_judgment:false,g_pairs:fg?e.g_candidates.map(c=>({candidate_id:c.candidate_id,
+          c_message_ids:c.c.map(m=>m.message_id),r_message_ids:c.r.map(m=>m.message_id),x_message_ids:allIDs(e),
+          label:null,reason:'',evidence:[]})):[],
+        ...(fg&&!e.g_candidates.length?{g_reason:''}:{}),
+        s:fg?null:blankS(e),unit_objections:[],_gLocked:false};
+    }
+    return state;
+  }
+  function exposure(state,eid) {
+    return (state.event_exposure_exceptions.find(e=>e.event_id===eid) || state.batch_declaration).reply_seen === true;
+  }
+  function applyExposure(state) {
+    for (const r of Object.values(state.records)) {
+      if (r.f_step1) r.f_step1.reply_seen_before_step1=exposure(state,r.event_id);
+      r.g_reply_seen_before_judgment=!!r.f_step1 && exposure(state,r.event_id);
+    }
+  }
+  function f1Errors(r,e,requireLock=true) {
+    const f=r.f_step1, out=[]; const add=s=>out.push(e.event_id+' · F1：'+s);
+    if (!f) return [e.event_id+' · 缺 F1'];
+    if (requireLock && f.locked!==true) add('尚未锁定');
+    if (!['units','holistic'].includes(f.mode)) add('请选择 mode');
+    if (typeof f.reason!=='string') add('理由格式错误');
+    const ids=e.f_units.map(u=>u.id);
+    if (!Array.isArray(f.acceptable)||new Set(f.acceptable).size!==f.acceptable.length||f.acceptable.some(id=>!ids.includes(id))) add('可接受单元无效');
+    else if (f.status==='insufficient_context') {
+      if (f.acceptable.length || f.preferred!=='insufficient_context') add('不足时必须空集合并选择 insufficient_context');
+    } else if (f.status!=='judged'||!f.acceptable.length||!(f.preferred==='no_unique'||f.acceptable.includes(f.preferred))) add('请选择可接受集合和首选');
+    return out;
+  }
+  function gErrors(r,e,requireLock=true) {
+    const out=[], add=s=>out.push(e.event_id+' · G：'+s);
+    if (requireLock && r._gLocked!==true) add('尚未锁定');
+    if (!e.g_candidates.length) {
+      if (r.g_status!=='not_applicable'||r.g_pairs?.length||!text(r.g_reason)) add('无候选时请写明原因');
+      return out;
+    }
+    if (r.g_status!=='annotated'||!Array.isArray(r.g_pairs)||!same(r.g_pairs.map(c=>c.candidate_id),e.g_candidates.map(c=>c.candidate_id))) return [e.event_id+' · G 候选集合不符'];
+    for (const [i,c] of e.g_candidates.entries()) {
+      const p=r.g_pairs[i], ids=c.c.concat(c.r,e.context,e.partner).map(m=>m.message_id);
+      for (const [k,ms] of [['c',c.c],['r',c.r],['x',e.context.concat(e.partner)]])
+        if (!same(p[k+'_message_ids'],ms.map(m=>m.message_id))) add(c.candidate_id+' 来源 ID 不符');
+      if (!['applicable','not_applicable','uncertain'].includes(p.label)) add(c.candidate_id+' 请选择判定');
+      if (!text(p.reason)) add(c.candidate_id+' 请填写理由');
+      if (!Array.isArray(p.evidence)||!p.evidence.length||new Set(p.evidence).size!==p.evidence.length||p.evidence.some(id=>!ids.includes(id))) add(c.candidate_id+' 请勾选有效证据');
+    }
+    return out;
+  }
+  function readyForStage2(state) {
+    return state.package.stage==='fg_stage1' && ['reply_seen','review_comments_read'].every(k=>typeof state.batch_declaration[k]==='boolean') && state.package.events.every(e=>!f1Errors(state.records[e.event_id],e).length&&!gErrors(state.records[e.event_id],e).length);
+  }
+  function attachStage2(state,pkg) {
+    validatePackage(pkg);
+    assert(readyForStage2(state),'先完成全批 F1、G 并锁定');
+    assert(!state.stage2,'本批 stage2 已加载，不可替换');
+    assert(pkg.stage==='fg_stage2' && ['protocol_version','material_version','batch_id'].every(k=>pkg[k]===state.package[k]),'stage2 阶段、批次或版本不匹配');
+    assert(same(pkg.events.map(e=>e.event_id).sort(),state.package.events.map(e=>e.event_id).sort()),'两个阶段 event_id 集合不匹配');
+    for (const e of pkg.events) {
+      const r=state.records[e.event_id];
+      if (!r.s) r.s=blankS(e);
+      else assert(same(r.s.segments.map(s=>({id:s.id,spans:s.spans})),e.segments),'导入结果与 stage2 冻结片段不同');
+      if (!r.f_step2) r.f_step2={status:null,mode:null,responded_groups:[],reason:''};
+    }
+    state.stage2=clone(pkg);
+  }
+  function f2Errors(r,e) {
+    const f=r.f_step2, out=[], add=s=>out.push(e.event_id+' · F2：'+s);
+    if (!f) return [e.event_id+' · 缺 F2'];
+    if (!['judged','no_match','insufficient_context'].includes(f.status)) add('请选择 status');
+    if (!['units','holistic'].includes(f.mode)) add('请选择 mode');
+    if (typeof f.reason!=='string') add('理由格式错误');
+    if (!Array.isArray(f.responded_groups)) return [e.event_id+' · F2 缺分组'];
+    const ids=e.f_units.map(u=>u.id), flat=f.responded_groups.flat();
+    if (f.responded_groups.some(g=>!Array.isArray(g)||!g.length)||flat.some(id=>!ids.includes(id))||new Set(flat).size!==flat.length) add('分组无效或重复承接');
+    if (f.status==='judged'?!f.responded_groups.length:!!f.responded_groups.length) add('judged 须有分组；无匹配/不足须空分组');
+    return out;
+  }
+  function sErrors(r,e) {
+    const out=[], add=s=>out.push(e.event_id+' · '+s), s=r.s;
+    if (!s || !Array.isArray(s.segments)) return [e.event_id+' · 缺 S'];
+    if (!same(s.segments.map(u=>({id:u.id,spans:u.spans})),e.segments)) add('冻结片段 ID 或 spans 不符');
+    const messages=new Map(e.reply.map(m=>[m.message_id,m]));
+    if (e.segmentation_diagnosis) {
+      if (!Array.isArray(s.free_segmentation)) return [e.event_id+' · 请先提交独立切分'];
+      else {
+        const seen=new Set();
+        for (const b of s.free_segmentation) {
+          const len=Array.from(messages.get(b.message_id)?.text||'').length, k=JSON.stringify(b);
+          if (!Number.isInteger(b.position)||b.position<=0||b.position>=len||seen.has(k)) add('无效自由切分边界');
+          seen.add(k);
+        }
+      }
+    }
+    for (const seg of s.segments) {
+      const prefix=seg.id+'：', a=seg.actions, c=seg.candidates;
+      if (!['judged','uncertain','insufficient_context'].includes(seg.status)) add(prefix+'请选择判断状态');
+      if (!Array.isArray(a)||!Array.isArray(c)) {add(prefix+'缺动作集合');continue;}
+      if ([a,c].some(v=>new Set(v).size!==v.length||v.some(k=>!has(ACTIONS,k)))) add(prefix+'无效动作');
+      if (seg.status==='judged'?!a.length:!!a.length) add(prefix+'judged 至少一个动作；未判断不得填动作');
+      if (seg.status==='uncertain'?!c.length:!!c.length) add(prefix+'uncertain 至少一个候选；其他状态无候选');
+      if ((seg.status!=='judged'||a.length>1||a.includes('OTHER'))&&!has(REASONS,seg.reason_code)) add(prefix+'请选择原因代码');
+      if ((a.includes('OTHER')||c.includes('OTHER'))&&!text(seg.reason)) add(prefix+'OTHER 必须描述功能');
+      if (!has(seg,'subtype')) add(prefix+'缺 subtype');
+      if (seg.subtype!==null) {
+        const entries=typeof seg.subtype==='object'?Object.entries(seg.subtype):a.filter(k=>has(SUBTYPES,k)).map(k=>[k,seg.subtype]);
+        if (!entries.length||entries.some(([k,v])=>!a.includes(k)||!SUBTYPES[k]?.includes(v))) add(prefix+'subtype 无效');
+      }
+      if (!seg.modifiers||!same(Object.keys(seg.modifiers).sort(),Object.keys(FEATURES).sort())) {add(prefix+'四特征键不全');continue;}
+      for (const k of Object.keys(FEATURES)) {
+        const m=seg.modifiers[k];
+        if (!m||!['present','absent','unclear'].includes(m.value)) {add(prefix+k+' 请选择');continue;}
+        if (m.value==='unclear'&&!text(m.reason)) add(prefix+k+' 请填短原因');
+        if (m.value==='absent'&&!same(Object.keys(m),['value'])) add(prefix+k+' absent 只保存 value');
+        if (m.value==='present') {
+          if (!Array.isArray(m.evidence)||!m.evidence.length) add(prefix+k+' 请拖选证据');
+          else for (const ev of m.evidence) {
+            const raw=messages.get(ev.message_id)?.text;
+            if (!raw||!Number.isInteger(ev.start)||!Number.isInteger(ev.end)||ev.start>=ev.end||ev.text!==slice(raw,ev.start,ev.end)||!seg.spans.some(sp=>sp.message_id===ev.message_id&&sp.start<=ev.start&&ev.end<=sp.end)) add(prefix+k+' 证据位置无效');
+          }
+        }
+      }
+    }
+    if (!Array.isArray(s.segment_objections)) add('缺边界异议列表');
+    else for (const o of s.segment_objections) if (!e.segments.some(seg=>seg.id===o.segment_id)||!['should_split','should_merge','wrong_boundary'].includes(o.problem)||o.reason_code!=='boundary'||!text(o.proposal)) add('请补齐边界异议');
+    return out;
+  }
+  function completion(state) {
+    const out=[];
+    if (!text(state.annotator_id)) out.push('批次：请填写匿名 ID');
+    if (!['training','pilot','adjudication'].includes(state.phase)) out.push('批次：请选择 phase');
+    for (const k of ['reply_seen','review_comments_read']) if (typeof state.batch_declaration?.[k]!=='boolean') out.push('批次声明：请明确选择 '+k+' 是/否');
+    const seen=new Set();
+    for (const ex of state.event_exposure_exceptions) {
+      if (!state.package.events.some(e=>e.event_id===ex.event_id)||seen.has(ex.event_id)||!text(ex.note)||['reply_seen','review_comments_read'].some(k=>typeof ex[k]!=='boolean')) out.push(ex.event_id+' · 请补齐暴露例外');
+      seen.add(ex.event_id);
+    }
+    if (!same(Object.keys(state.records).sort(),state.package.events.map(e=>e.event_id).sort())) out.push('批次：事件集合不符');
+    for (const e of state.package.events) {
+      const r=state.records[e.event_id];
+      if (!r) {out.push(e.event_id+' · 缺记录');continue;}
+      if (r.material_ref!==e.material_ref||r.sample_role!==e.sample_role) out.push(e.event_id+' · 事件元数据不符');
+      if (state.package.stage==='fg_stage1') {
+        out.push(...f1Errors(r,e),...gErrors(r,e));
+        if (r.f_step1?.reply_seen_before_step1!==exposure(state,e.event_id)||r.g_reply_seen_before_judgment!==exposure(state,e.event_id)) out.push(e.event_id+' · F1/G 暴露标记不符');
+        if (!state.stage2) {out.push(e.event_id+' · 尚未加载 stage2');continue;}
+        out.push(...f2Errors(r,e));
+      } else if (r.f_step1!==null||r.f_step2!==null||r.g_status!==null||!Array.isArray(r.g_pairs)||r.g_pairs.length||r.g_reply_seen_before_judgment!==false) out.push(e.event_id+' · S-only 的 F/G 必须为空');
+      const target=(state.stage2||state.package).events.find(t=>t.event_id===e.event_id);
+      out.push(...sErrors(r,target));
+      if (!Array.isArray(r.unit_objections)) out.push(e.event_id+' · 缺单元异议列表');
+      else for (const o of r.unit_objections) if (!e.f_units?.some(u=>u.id===o.unit_id)||!text(o.problem)||!text(o.proposal)) out.push(e.event_id+' · 请补齐单元异议');
+    }
+    return out;
+  }
+  function buildExport(state) {
+    const errors=completion(state); assert(!errors.length,errors.join('\n'));
+    const records=state.package.events.map(e=> {
+      const source=state.records[e.event_id], r={};
+      for (const key of ['event_id','material_ref','sample_role','f_step1','f_step2','g_status','g_reply_seen_before_judgment','g_pairs','s','unit_objections']) r[key]=clone(source[key]);
+      if (has(source,'g_reason')) r.g_reason=source.g_reason;
+      if (r.f_step1) r.f_step1.reply_seen_before_step1=exposure(state,e.event_id);
+      r.g_reply_seen_before_judgment=!!r.f_step1&&exposure(state,e.event_id);
+      return r;
+    });
+    return {protocol_version:PROTOCOL,material_version:state.package.material_version,annotator_id:state.annotator_id,
+      phase:state.phase,batch_id:state.package.batch_id,batch_declaration:clone(state.batch_declaration),
+      event_exposure_exceptions:clone(state.event_exposure_exceptions),records};
+  }
+  function importExport(state,data) {
+    assert(data && ['protocol_version','material_version','batch_id'].every(k=>data[k]===state.package[k]),'导入版本/批次不匹配');
+    assert(data.annotator_id===state.annotator_id && data.phase===state.phase,'导入匿名 ID 或阶段不匹配');
+    assert(Array.isArray(data.records) && same(data.records.map(r=>r.event_id).sort(),state.package.events.map(e=>e.event_id).sort()),'导入事件集合不匹配');
+    const next=clone(state); next.batch_declaration=clone(data.batch_declaration);next.event_exposure_exceptions=clone(data.event_exposure_exceptions);
+    for (const r of data.records) {
+      assert(!has(r,'training_material'),'请使用正式导出，不导入教学答案');
+      const old=state.records[r.event_id];
+      if (old.f_step1?.locked) {
+        const previous=clone(old.f_step1), incoming=clone(r.f_step1);
+        delete previous.reply_seen_before_step1; delete incoming.reply_seen_before_step1;
+        assert(same(previous,incoming),r.event_id+' 的 F1 已锁定，不能用导入改写');
+      }
+      if (old._gLocked) assert(same(old.g_pairs,r.g_pairs)&&old.g_status===r.g_status&&old.g_reason===r.g_reason,r.event_id+' 的 G 已锁定，不能用导入改写');
+      if (old.s && has(old.s,'free_segmentation')) assert(same(old.s.free_segmentation,r.s?.free_segmentation),r.event_id+' 的独立切分已锁定，不能用导入改写');
+      next.records[r.event_id]={...clone(r),_gLocked:true};
+    }
+    // Stage1 resume can import F1/G first. S remains hidden until matching stage2 is loaded.
+    const errors=completion(next).filter(s=>!(!next.stage2 && next.package.stage==='fg_stage1' && s.endsWith('尚未加载 stage2')));
+    assert(!errors.length,errors.join('\n')); applyExposure(next); return next;
+  }
+  return {ACTIONS,FEATURES,REASONS,SUBTYPES,clone,has,same,codePointOffset,slice,validatePackage,
+    createState,blankS,f1Errors,gErrors,f2Errors,sErrors,readyForStage2,attachStage2,completion,buildExport,
+    exposure,applyExposure,importExport};
+})();
+</script>
+<script>
+'use strict';
+const C=AnnotationCore, $=id=>document.getElementById(id);
+let state=null, current=0;
+function el(tag,txt,cls) { const n=document.createElement(tag); if(txt!==undefined)n.textContent=txt; if(cls)n.className=cls; return n; }
+function button(txt,action,parent,disabled=false) {const n=el('button',txt);n.type='button';n.disabled=disabled;n.onclick=()=>guard(action);parent.append(n);return n;}
+function guard(action) {try{action();}catch(error){notice(error.message,true);}}
+function notice(message,error=false) {const n=$('notice');n.textContent=message;n.className=error?'error':'success';}
+function radio(parent,title,options,value,onchange,disabled=false) {
+  const f=el('fieldset'),l=el('legend',title);f.append(l);const name='r'+(++radio.count);
+  for(const [key,label] of options) {const lab=el('label'),input=document.createElement('input');input.type='radio';input.name=name;input.value=String(key);input.checked=value===key;input.disabled=disabled;input.onchange=()=>guard(()=>onchange(key));lab.append(input,document.createTextNode(' '+label));f.append(lab);}parent.append(f);return f;
+}
+radio.count=0;
+function select(parent,title,options,value,onchange,disabled=false) {
+  const lab=el('label',title+' '),input=el('select');input.append(new Option('请选择（无默认）',''));
+  for(const [key,label] of options)input.append(new Option(label,key));input.value=value??'';input.disabled=disabled;
+  input.onchange=()=>guard(()=>onchange(input.value||null));lab.append(input);parent.append(lab);return input;
+}
+function inputText(parent,title,value,onchange,disabled=false) {
+  const label=el('label',title),input=el('textarea');input.value=value||'';input.disabled=disabled;input.oninput=()=>guard(()=>onchange(input.value));label.append(input);parent.append(label);return input;
+}
+function checklist(parent,title,options,values,onchange,disabled=false) {
+  const field=el('fieldset');field.append(el('legend',title));
+  for(const [key,label] of options) {const lab=el('label'),input=el('input');input.type='checkbox';input.checked=values.includes(key);input.disabled=disabled;input.onchange=()=>guard(()=>onchange(input.checked?values.concat(key):values.filter(x=>x!==key)));lab.append(input,document.createTextNode(' '+label));field.append(lab);}parent.append(field);return field;
+}
+function storageKey(s) {return 'annotation-v1.1:'+JSON.stringify([s.annotator_id,s.package.batch_id,s.package.material_version]);}
+function save() {
+  C.applyExposure(state);
+  try {localStorage.setItem(storageKey(state),JSON.stringify(state));$('save-status').className='muted';$('save-status').textContent='已自动保存到本机浏览器 · '+new Date().toLocaleTimeString();}
+  catch(error) {$('save-status').textContent='本浏览器无法保存草稿。请保持本页打开，完成后立即导出备份。';$('save-status').className='error';}
+  updateProgress();
+}
+function updateProgress() {
+  if(!state)return;
+  const count=C.completion(state).length;$('progress').textContent=count?'尚有 '+count+' 项待完成':'全部完成，可导出';
+  $('stage2-panel').hidden=state.package.stage!=='fg_stage1'||!!state.stage2;
+  $('stage2-file').disabled=!C.readyForStage2(state);
+  $('previous').disabled=current===0;$('next').disabled=current===state.package.events.length-1;
+}
+function renderDeclarations() {
+  const parent=$('declarations');parent.replaceChildren();
+  parent.append(el('p','开始前的本批暴露声明（两个都必须手动选择）'));
+  for(const [key,title] of [['reply_seen','此前是否看过本批任何目标回复'],['review_comments_read','此前是否读过本批材料的核验评论']])
+    radio(parent,title,[[true,'是'],[false,'否']],state.batch_declaration[key],v=>{state.batch_declaration[key]=v;save();});
+}
+function render() {
+  $('workspace').hidden=false;$('annotator').disabled=true;$('phase').disabled=true;
+  $('batch-title').textContent=state.package.batch_id+' · '+state.package.material_version+' · '+state.annotator_id+' / '+state.phase;
+  renderDeclarations();const nav=$('event-select');nav.replaceChildren();
+  state.package.events.forEach((e,i)=>nav.append(new Option((i+1)+' / '+state.package.events.length+' · '+e.event_id,String(i))));nav.value=String(current);
+  renderEvent();updateProgress();
+}
+function messages(parent,title,ms) {
+  const box=el('div');box.append(el('h3',title));
+  for(const m of ms)box.append(el('div',m.message_id+' · '+m.speaker_id+'\n'+m.text,'msg'));
+  if(!ms.length)box.append(el('p','（无）','muted'));parent.append(box);
+}
+function renderExposure(parent,event) {
+  const details=el('details');details.append(el('summary','逐事件暴露例外（覆盖本批声明）'));
+  const ex=state.event_exposure_exceptions.find(e=>e.event_id===event.event_id);
+  if(!ex)button('添加本事件例外',()=>{state.event_exposure_exceptions.push({event_id:event.event_id,reply_seen:null,review_comments_read:null,note:''});save();renderEvent();},details);
+  else {
+    for(const [key,title] of [['reply_seen','本事件此前看过目标回复'],['review_comments_read','本事件此前读过核验评论']])radio(details,title,[[true,'是'],[false,'否']],ex[key],v=>{ex[key]=v;save();});
+    inputText(details,'例外说明（必填）',ex.note,v=>{ex.note=v;save();});
+    button('删除本事件例外',()=>{state.event_exposure_exceptions=state.event_exposure_exceptions.filter(e=>e!==ex);save();renderEvent();},details);
+  }
+  parent.append(details);
+}
+function renderUnits(parent,event,record) {
+  const box=el('div');box.append(el('h3','冻结 F 信息单元'));
+  for(const u of event.f_units)box.append(el('div',u.id+' · '+u.spans.map(s=>s.text).join(' ⏐ '),'msg'));
+  const details=el('details');details.append(el('summary','F 单元异议（保留原答案）'));
+  for(const [i,o] of record.unit_objections.entries()) {
+    const row=el('fieldset');select(row,'单元',event.f_units.map(u=>[u.id,u.id]),o.unit_id,v=>{o.unit_id=v;save();});
+    inputText(row,'问题（一句）',o.problem,v=>{o.problem=v;save();});inputText(row,'修改建议（一句）',o.proposal,v=>{o.proposal=v;save();});
+    button('删除此异议',()=>{record.unit_objections.splice(i,1);save();renderEvent();},row);details.append(row);
+  }
+  button('添加单元异议',()=>{record.unit_objections.push({unit_id:null,problem:'',proposal:''});save();renderEvent();},details);box.append(details);parent.append(box);
+}
+function renderF1(parent,event,record) {
+  const box=el('section'),f=record.f_step1;box.append(el('h2',f.locked?'F1 已锁定':'F1 · 看回复前选择焦点'));
+  box.append(el('p','可接受集合可以多选；首选从已选单元中选，或选 no_unique。上下文不足时选择 insufficient_context，并清空集合。','muted'));
+  checklist(box,'可接受单元（至少一个；不足时为空）',event.f_units.map(u=>[u.id,u.id+' '+u.spans.map(s=>s.text).join(' ⏐ ')]),f.acceptable,v=>{
+    f.acceptable=v;if(f.preferred!=='no_unique'&&!v.includes(f.preferred)){f.preferred=null;f.status=null;}save();renderEvent();
+  },f.locked);
+  radio(box,'首选',f.acceptable.map(id=>[id,id]).concat([['no_unique','no_unique 无唯一首选'],['insufficient_context','insufficient_context 上下文不足']]),f.preferred,v=>{
+    f.preferred=v;f.status=v==='insufficient_context'?'insufficient_context':'judged';if(v==='insufficient_context')f.acceptable=[];save();renderEvent();
+  },f.locked);
+  radio(box,'承接方式 mode',[['units','units 可定位单元'],['holistic','holistic 整体承接（仍选 ID）']],f.mode,v=>{f.mode=v;save();},f.locked);
+  inputText(box,'理由（可选；无法定位整体承接时说明）',f.reason,v=>{f.reason=v;save();},f.locked);
+  if(!f.locked)button('锁定 F1（之后不可改）',()=>{if(['reply_seen','review_comments_read'].some(k=>typeof state.batch_declaration[k]!=='boolean'))throw Error('先完成两个本批暴露声明。');const errors=C.f1Errors(record,event,false);if(errors.length)throw Error(errors.join('\n'));f.locked=true;save();renderEvent();},box);
+  parent.append(box);
+}
+function renderG(parent,event,record) {
+  const box=el('section');box.append(el('h2',record._gLocked?'G 已锁定':'G · 历史回应的前提在当前语境是否成立'));
+  if(!record.f_step1.locked){box.append(el('p','请先完成并锁定 F1。'));parent.append(box);return;}
+  box.append(el('p','只看历史 c/r 与当前 x，依据状态、需求、所指人和旧事实/承诺判断。话题不同本身不算冲突。','muted'));
+  if(!event.g_candidates.length)inputText(box,'本事件没有候选，说明原因（必填）',record.g_reason,v=>{record.g_reason=v;save();},record._gLocked);
+  for(const [i,c] of event.g_candidates.entries()) {
+    const field=el('fieldset'),pair=record.g_pairs[i];field.append(el('legend',c.candidate_id));messages(field,'历史对方话 c',c.c);messages(field,'历史回复 r',c.r);
+    field.append(el('p','当前 x 消息 ID：'+pair.x_message_ids.join('、'),'muted'));
+    radio(field,'判定',[['applicable','applicable 前提成立'],['not_applicable','not_applicable 有前提冲突'],['uncertain','uncertain 两种补全会反转结论']],pair.label,v=>{pair.label=v;save();},record._gLocked);
+    inputText(field,'简短理由（必填）',pair.reason,v=>{pair.reason=v;save();},record._gLocked);
+    const choices=new Map(c.c.concat(c.r,event.context,event.partner).map(m=>[m.message_id,m]));
+    checklist(field,'证据消息（至少一项）',Array.from(choices.values()).map(m=>[m.message_id,m.message_id+' · '+m.text]),pair.evidence,v=>{pair.evidence=v;save();renderEvent();},record._gLocked);
+    box.append(field);
+  }
+  if(!record._gLocked)button('锁定 G（之后不可改）',()=>{const errors=C.gErrors(record,event,false);if(errors.length)throw Error(errors.join('\n'));record._gLocked=true;save();renderEvent();},box);
+  parent.append(box);
+}
+function renderF2(parent,event,record) {
+  const box=el('section'),f=record.f_step2;box.append(el('h2','F2 · 实际承接焦点'));
+  radio(box,'状态',[['judged','judged 可映射'],['no_match','no_match 没有承接已列单元'],['insufficient_context','insufficient_context 上下文不足']],f.status,v=>{f.status=v;if(v!=='judged')f.responded_groups=[];save();renderEvent();});
+  radio(box,'承接方式 mode',[['units','units 可定位单元'],['holistic','holistic 整体承接（仍选 ID）']],f.mode,v=>{f.mode=v;save();});
+  if(f.status==='judged') {
+    box.append(el('p','按首次承接顺序添加组；同组表示同时承接。每个单元只记录第一次出现。','muted'));
+    f.responded_groups.forEach((group,i)=>{
+      const row=el('fieldset');row.append(el('legend','第 '+(i+1)+' 组'));
+      const available=event.f_units.filter(u=>!f.responded_groups.some((g,j)=>j!==i&&g.includes(u.id)));
+      checklist(row,'同组单元',available.map(u=>[u.id,u.id+' '+u.spans.map(s=>s.text).join(' ⏐ ')]),group,v=>{f.responded_groups[i]=v;save();renderEvent();});
+      button('上移',()=>{[f.responded_groups[i-1],f.responded_groups[i]]=[group,f.responded_groups[i-1]];save();renderEvent();},row,i===0);
+      button('下移',()=>{[f.responded_groups[i+1],f.responded_groups[i]]=[group,f.responded_groups[i+1]];save();renderEvent();},row,i===f.responded_groups.length-1);
+      button('删除组',()=>{f.responded_groups.splice(i,1);save();renderEvent();},row);box.append(row);
+    });
+    button('添加下一组',()=>{f.responded_groups.push([]);save();renderEvent();},box);
+  }
+  inputText(box,'理由（可选；无法定位整体承接时说明）',f.reason,v=>{f.reason=v;save();});parent.append(box);
+}
+function renderDiagnosis(parent,target,record) {
+  const box=el('section');box.append(el('h2','独立切分诊断 · 先不看预切'));
+  box.append(el('p','在字符之间的“·”上点击放置或取消边界。消息两端是天然边界，不用标。可以不设内部边界。提交后锁定，再显示冻结片段。'));
+  if(!record._freeDraft)record._freeDraft=[];
+  for(const m of target.reply) {
+    box.append(el('h3',m.message_id+' · '+m.speaker_id));const row=el('div',undefined,'boundary-text');
+    const chars=Array.from(m.text);
+    chars.forEach((ch,i)=>{row.append(document.createTextNode(ch));if(i<chars.length-1) {
+      const position=i+1,on=record._freeDraft.some(b=>b.message_id===m.message_id&&b.position===position);
+      const b=button(on?'│':'·',()=>{if(on)record._freeDraft=record._freeDraft.filter(b=>!(b.message_id===m.message_id&&b.position===position));else record._freeDraft.push({message_id:m.message_id,position});save();renderEvent();},row);
+      b.className='boundary'+(on?' on':'');b.setAttribute('aria-pressed',String(on));b.setAttribute('aria-label',m.message_id+' 第 '+position+' 个码点后'+(on?'取消':'放置')+'边界');
+    }});box.append(row);
+  }
+  button('提交切分（锁定并查看预切）',()=>{const ids=target.reply.map(m=>m.message_id);record.s.free_segmentation=C.clone(record._freeDraft).sort((a,b)=>ids.indexOf(a.message_id)-ids.indexOf(b.message_id)||a.position-b.position);delete record._freeDraft;save();renderEvent();},box);parent.append(box);
+}
+function addSelection(textNode,span,modifier) {
+  const selection=window.getSelection();
+  if(!selection||selection.rangeCount!==1||selection.isCollapsed)throw Error('请先在此证据文本内拖选一段。');
+  const range=selection.getRangeAt(0);
+  if(!textNode.contains(range.startContainer)||!textNode.contains(range.endContainer))throw Error('每次只在同一个黄色文本框内拖选；跨消息可分别添加。');
+  const prefix=document.createRange();prefix.selectNodeContents(textNode);prefix.setEnd(range.startContainer,range.startOffset);
+  const start=span.start+Array.from(prefix.toString()).length, end=start+Array.from(range.toString()).length;
+  if(end>span.end||start>=end)throw Error('请选择有效的片段文字。');
+  const evidence={message_id:span.message_id,start,end,text:range.toString()};
+  if(!modifier.evidence)modifier.evidence=[];
+  if(!modifier.evidence.some(ev=>C.same(ev,evidence)))modifier.evidence.push(evidence);
+  selection.removeAllRanges();save();renderEvent();
+}
+function renderModifier(parent,segment,key) {
+  const m=segment.modifiers[key],box=el('div',undefined,'feature');box.append(el('strong',key+' · '+C.FEATURES[key]));
+  radio(box,'特征状态',[['present','present 有'],['absent','absent 无'],['unclear','unclear 无法确定']],m.value,v=>{
+    segment.modifiers[key]={value:v,...(v==='present'?{evidence:[]}:v==='unclear'?{reason:''}:{})};save();renderEvent();
+  });
+  if(m.value==='unclear')inputText(box,'短原因（必填）',m.reason,v=>{m.reason=v;save();});
+  if(m.value==='present') {
+    box.append(el('p','拖选下面的原文，再按“添加这段证据”；可分别添加多段。','muted'));
+    for(const span of segment.spans) {
+      const row=el('div'),raw=el('div',span.text,'evidence-text');row.append(el('small',span.message_id),raw);
+      const add=button('添加这段证据',()=>addSelection(raw,span,m),row);add.onmousedown=e=>e.preventDefault();box.append(row);
+    }
+    for(const [i,ev] of (m.evidence||[]).entries()) {
+      const row=el('div',ev.message_id+' · '+ev.text,'listitem');button('移除此证据',()=>{m.evidence.splice(i,1);save();renderEvent();},row);box.append(row);
+    }
+  }
+  parent.append(box);
+}
+function renderSegment(parent,segment,record) {
+  const box=el('section');box.append(el('h3','片段 '+segment.id));
+  for(const span of segment.spans)box.append(el('div',span.message_id+' · '+span.text,'msg'));
+  radio(box,'判断状态（必选）',[['judged','judged 可判断'],['uncertain','uncertain 解释不确定'],['insufficient_context','insufficient_context 上下文不足']],segment.status,v=>{
+    segment.status=v;segment.actions=[];segment.candidates=[];segment.subtype=null;delete segment.reason_code;delete segment.reason;save();renderEvent();
+  });
+  if(['judged','uncertain'].includes(segment.status)) {
+    const prop=segment.status==='judged'?'actions':'candidates';
+    const field=checklist(box,segment.status==='judged'?'动作（通常一个，不可分多功能才多选）':'候选动作（至少一个）',Object.entries(C.ACTIONS).map(([code,def])=>[code,code+' · '+def]),segment[prop],v=>{
+      segment[prop]=v;segment.subtype=null;if(prop==='actions'&&v.length<=1&&!v.includes('OTHER')){delete segment.reason_code;delete segment.reason;}save();renderEvent();
+    });field.classList.add('actions');
+  }
+  const exceptional=segment.status&& (segment.status!=='judged'||segment.actions.length>1||segment.actions.includes('OTHER'));
+  if(exceptional) {
+    select(box,'原因代码（必须手选）',Object.entries(C.REASONS),segment.reason_code,v=>{if(v)segment.reason_code=v;else delete segment.reason_code;save();});
+    inputText(box,segment.actions.includes('OTHER')||segment.candidates.includes('OTHER')?'功能描述（OTHER 必填）':'补充原因（可选）',segment.reason,v=>{if(v)segment.reason=v;else delete segment.reason;save();});
+  }
+  const subtypeActions=segment.actions.filter(k=>C.has(C.SUBTYPES,k));
+  for(const action of subtypeActions) {
+    const selected=typeof segment.subtype==='object'&&segment.subtype!==null?segment.subtype[action]:segment.subtype;
+    const input=select(box,action+' subtype（可选，留空为 null）',C.SUBTYPES[action].map(v=>[v,v]),selected,v=>{
+      if(segment.actions.length>1) {const values=typeof segment.subtype==='object'&&segment.subtype!==null?{...segment.subtype}:{};if(v)values[action]=v;else delete values[action];segment.subtype=Object.keys(values).length?values:null;}
+      else segment.subtype=v;save();
+    });input.options[0].text='留空（null）';
+  }
+  for(const key of Object.keys(C.FEATURES))renderModifier(box,segment,key);
+  button('对此片段提出边界异议',()=>{record.s.segment_objections.push({segment_id:segment.id,problem:null,proposal:'',reason_code:'boundary'});save();renderEvent();},box);parent.append(box);
+}
+function renderObjections(parent,record) {
+  if(!record.s.segment_objections.length)return;
+  const box=el('section');box.append(el('h2','片段边界异议'));
+  record.s.segment_objections.forEach((o,i)=>{
+    const row=el('fieldset');row.append(el('legend',o.segment_id));
+    select(row,'问题',[['should_split','should_split 应拆分'],['should_merge','should_merge 应合并'],['wrong_boundary','wrong_boundary 边界位置不对']],o.problem,v=>{o.problem=v;save();});
+    inputText(row,'一句修改建议（合并时写另一片段 ID）',o.proposal,v=>{o.proposal=v;save();});
+    row.append(el('p','原因代码：boundary','muted'));button('删除此异议',()=>{record.s.segment_objections.splice(i,1);save();renderEvent();},row);box.append(row);
+  });parent.append(box);
+}
+function renderEvent() {
+  const parent=$('event-view');parent.replaceChildren();const event=state.package.events[current],record=state.records[event.event_id];
+  const info=el('section');info.append(el('h2',event.event_id+' · '+event.sample_role));info.append(el('p','材料引用：'+event.material_ref,'muted'));
+  messages(info,'上下文 x',event.context);messages(info,'对方话轮 x',event.partner);renderExposure(info,event);parent.append(info);
+  if(state.package.stage==='fg_stage1') {
+    renderUnits(info,event,record);renderF1(parent,event,record);renderG(parent,event,record);
+    if(!state.stage2){updateProgress();return;}
+  }
+  const target=(state.stage2||state.package).events.find(e=>e.event_id===event.event_id);
+  if(target.segmentation_diagnosis&&!C.has(record.s,'free_segmentation')) {renderDiagnosis(parent,target,record);updateProgress();return;}
+  const reply=el('section');messages(reply,'完整目标回复',target.reply);
+  if(target.segmentation_diagnosis)reply.append(el('p','独立切分已锁定（内部边界 '+record.s.free_segmentation.length+' 个）。以下按冻结预切标注。','tag'));parent.append(reply);
+  if(state.stage2)renderF2(parent,event,record);
+  const heading=el('section');heading.append(el('h2','S · 冻结功能片段'),el('p','四个特征均须显式选择；present 拖选证据，unclear 填短原因。偏移由工具记录。','muted'));parent.append(heading);
+  for(const segment of record.s.segments)renderSegment(parent,segment,record);renderObjections(parent,record);updateProgress();
+}
+function fileJSON(input,callback) {
+  const file=input.files[0];if(!file)return;const reader=new FileReader();
+  reader.onload=()=>{const content=reader.result;input.value='';guard(()=>callback(JSON.parse(content)));};reader.onerror=()=>notice('本地文件读取失败，请重新选择。',true);reader.readAsText(file,'UTF-8');
+}
+$('package-file').onchange=()=>fileJSON($('package-file'),pkg=>{
+  const id=$('annotator').value.trim();if(!id)throw Error('先填写匿名 annotator_id。');
+  const next=C.createState(pkg,id,$('phase').value);let draft;
+  try{draft=localStorage.getItem(storageKey(next));}catch(error){notice('浏览器禁用草稿存储，请保留本页直到完成导出。',true);}
+  if(draft) {
+    const restored=JSON.parse(draft);if(!C.same(restored.package,next.package)||restored.phase!==next.phase)throw Error('同键草稿的材料或 phase 不同。请使用原包及阶段恢复，或使用另一个匿名 ID 开新批。');
+    if(restored.stage2) {const stage2=restored.stage2;restored.stage2=null;C.attachStage2(restored,stage2);}
+    state=restored;notice('已恢复本机草稿。');
+  } else {state=next;notice('任务包已加载，请完成本批声明。');}
+  current=0;$('errors').hidden=true;render();save();
+});
+$('stage2-file').onchange=()=>fileJSON($('stage2-file'),pkg=>{const next=C.clone(state);C.attachStage2(next,pkg);state=next;save();render();notice('stage2 已匹配并加载；F1 和 G 保持锁定。');});
+$('import-file').onchange=()=>fileJSON($('import-file'),data=>{state=C.importExport(state,data);save();render();notice(state.package.stage==='fg_stage1'&&!state.stage2?'F1/G 已恢复并锁定，请加载同版 stage2 后继续 F2/S。':'导出结果已导入，可继续补记。');});
+$('event-select').onchange=()=>{current=Number($('event-select').value);renderEvent();};
+$('previous').onclick=()=>{if(current>0){current--;$('event-select').value=String(current);renderEvent();}};
+$('next').onclick=()=>{if(current<state.package.events.length-1){current++;$('event-select').value=String(current);renderEvent();}};
+$('export').onclick=()=>guard(()=>{
+  const errors=C.completion(state),box=$('errors');box.replaceChildren();box.hidden=false;
+  if(errors.length) {box.append(el('h2','尚未完成，不能导出'));const list=el('ul');for(const error of errors)list.append(el('li',error));box.append(list);notice('请补齐下方列出的缺项。',true);return;}
+  const data=C.buildExport(state),blob=new Blob([JSON.stringify(data,null,2)+'\n'],{type:'application/json'}),url=URL.createObjectURL(blob),a=el('a');a.href=url;a.download=state.package.batch_id+'-'+state.annotator_id+'.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  box.append(el('p','导出完成。请将 JSON 按负责人约定单独交付，并保留原始结果。'));notice('已生成 '+a.download);save();
+});
+</script>
+</body></html>

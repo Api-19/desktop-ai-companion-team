@@ -1,8 +1,21 @@
 {
-  "protocol_version": "rcpem-public-pilot-v1.0",
-  "material_version": "synthetic-training-v1",
+  "protocol_version": "rcpem-public-pilot-v1.1",
+  "material_version": "synthetic-training-v1.1",
   "annotator_id": "demo-only",
   "phase": "training",
+  "batch_id": "synthetic-training-batch",
+  "batch_declaration": {
+    "reply_seen": false,
+    "review_comments_read": false
+  },
+  "event_exposure_exceptions": [
+    {
+      "event_id": "synthetic-001",
+      "reply_seen": false,
+      "review_comments_read": true,
+      "note": "教学示范：此前读过本编造事件的练习说明，未见目标回复。"
+    }
+  ],
   "records": [
     {
       "event_id": "synthetic-001",
@@ -13,8 +26,18 @@
         "missing_context": false,
         "context": [
           {
-            "message_id": "c1",
+            "message_id": "h1",
+            "speaker_id": "speaker-b",
+            "text": "上次练了很久，演示还是临时取消了，我很烦。"
+          },
+          {
+            "message_id": "h2",
             "speaker_id": "speaker-a",
+            "text": "准备这么久被取消，难怪会烦。"
+          },
+          {
+            "message_id": "c1",
+            "speaker_id": "speaker-b",
             "text": "报告改到下周。"
           }
         ],
@@ -54,7 +77,17 @@
             "text": "我很烦"
           }
         ],
-        "g_candidates": []
+        "g_candidates": [
+          {
+            "candidate_id": "candidate-1",
+            "c_message_ids": [
+              "h1"
+            ],
+            "r_message_ids": [
+              "h2"
+            ]
+          }
+        ]
       },
       "f_step1": {
         "locked": true,
@@ -68,9 +101,30 @@
         "mode": "units",
         "reason": "教学示范：事件与感受都可承接，没有唯一首选"
       },
-      "g_status": "not_applicable",
+      "g_status": "annotated",
       "g_reply_seen_before_judgment": false,
-      "g_pairs": [],
+      "g_pairs": [
+        {
+          "candidate_id": "candidate-1",
+          "c_message_ids": [
+            "h1"
+          ],
+          "r_message_ids": [
+            "h2"
+          ],
+          "x_message_ids": [
+            "c1",
+            "p1"
+          ],
+          "label": "applicable",
+          "reason": "当前也有长期准备后临时变更及烦恼；认可这种感受的回应方式前提成立。",
+          "evidence": [
+            "h1",
+            "h2",
+            "p1"
+          ]
+        }
+      ],
       "f_step2": {
         "status": "judged",
         "mode": "units",
@@ -104,23 +158,26 @@
             "subtype": null,
             "modifiers": {
               "humor": {
-                "value": "absent",
-                "evidence": ""
+                "value": "absent"
               },
               "affection": {
-                "value": "absent",
-                "evidence": ""
+                "value": "absent"
               },
               "seek_care": {
-                "value": "absent",
-                "evidence": ""
+                "value": "absent"
               },
               "self_disclosure": {
                 "value": "present",
-                "evidence": "我以前也遇到过"
+                "evidence": [
+                  {
+                    "message_id": "r1",
+                    "start": 0,
+                    "end": 7,
+                    "text": "我以前也遇到过"
+                  }
+                ]
               }
-            },
-            "reason": ""
+            }
           },
           {
             "id": "s2",
@@ -140,23 +197,18 @@
             "subtype": null,
             "modifiers": {
               "humor": {
-                "value": "absent",
-                "evidence": ""
+                "value": "absent"
               },
               "affection": {
-                "value": "absent",
-                "evidence": ""
+                "value": "absent"
               },
               "seek_care": {
-                "value": "absent",
-                "evidence": ""
+                "value": "absent"
               },
               "self_disclosure": {
-                "value": "absent",
-                "evidence": ""
+                "value": "absent"
               }
-            },
-            "reason": ""
+            }
           },
           {
             "id": "s3",
@@ -176,28 +228,31 @@
             "subtype": null,
             "modifiers": {
               "humor": {
-                "value": "absent",
-                "evidence": ""
+                "value": "absent"
               },
               "affection": {
-                "value": "absent",
-                "evidence": ""
+                "value": "absent"
               },
               "seek_care": {
-                "value": "absent",
-                "evidence": ""
+                "value": "absent"
               },
               "self_disclosure": {
-                "value": "absent",
-                "evidence": ""
+                "value": "absent"
               }
-            },
-            "reason": ""
+            }
           }
-        ]
+        ],
+        "segment_objections": []
       },
       "unit_objections": [],
-      "g_reason": "独立编造的教学例未准备候选历史，本例只演示 F/S；G 不计入配对分母。"
+      "sample_role": "base"
     }
-  ]
+  ],
+  "legacy_projection": {
+    "version": "a2e-proj-v0",
+    "event_id": "synthetic-001",
+    "first_segment_id": "s1",
+    "label": "U",
+    "reason": "首段 INFORM 是直接接话还是独立自述无法唯一确定，不能仅凭 self_disclosure 判为 C。"
+  }
 }

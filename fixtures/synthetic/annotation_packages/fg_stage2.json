@@ -1,0 +1,79 @@
+{
+  "package_format": "cped-annotation-package-v1",
+  "protocol_version": "rcpem-public-pilot-v1.1",
+  "material_version": "invented-demo-v1",
+  "batch_id": "invented-fg-demo",
+  "stage": "fg_stage2",
+  "events": [
+    {
+      "event_id": "invented-001",
+      "reply": [
+        {
+          "message_id": "r1",
+          "speaker_id": "speaker-a",
+          "text": "我也试过😀。可以换张厚纸。"
+        }
+      ],
+      "segments": [
+        {
+          "id": "s1",
+          "spans": [
+            {
+              "message_id": "r1",
+              "start": 0,
+              "end": 6,
+              "text": "我也试过😀。"
+            }
+          ]
+        },
+        {
+          "id": "s2",
+          "spans": [
+            {
+              "message_id": "r1",
+              "start": 6,
+              "end": 13,
+              "text": "可以换张厚纸。"
+            }
+          ]
+        }
+      ],
+      "segmentation_diagnosis": true
+    },
+    {
+      "event_id": "invented-002",
+      "reply": [
+        {
+          "message_id": "r1",
+          "speaker_id": "speaker-a",
+          "text": "明天我来帮忙。谢谢你提前说。"
+        }
+      ],
+      "segments": [
+        {
+          "id": "s1",
+          "spans": [
+            {
+              "message_id": "r1",
+              "start": 0,
+              "end": 7,
+              "text": "明天我来帮忙。"
+            }
+          ]
+        },
+        {
+          "id": "s2",
+          "spans": [
+            {
+              "message_id": "r1",
+              "start": 7,
+              "end": 14,
+              "text": "谢谢你提前说。"
+            }
+          ]
+        }
+      ],
+      "segmentation_diagnosis": false
+    }
+  ]
+}

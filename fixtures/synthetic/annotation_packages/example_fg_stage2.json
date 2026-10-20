@@ -1,0 +1,65 @@
+{
+  "package_format": "cped-annotation-package-v1",
+  "protocol_version": "rcpem-public-pilot-v1.1",
+  "material_version": "synthetic-training-v1.1",
+  "batch_id": "synthetic-training-batch",
+  "stage": "fg_stage2",
+  "events": [
+    {
+      "event_id": "synthetic-001",
+      "reply": [
+        {
+          "message_id": "r1",
+          "speaker_id": "speaker-a",
+          "text": "我以前也遇到过。"
+        },
+        {
+          "message_id": "r2",
+          "speaker_id": "speaker-a",
+          "text": "准备这么久被改期，难怪会烦。"
+        },
+        {
+          "message_id": "r3",
+          "speaker_id": "speaker-a",
+          "text": "可以先问问负责人。"
+        }
+      ],
+      "segments": [
+        {
+          "id": "s1",
+          "spans": [
+            {
+              "message_id": "r1",
+              "start": 0,
+              "end": 8,
+              "text": "我以前也遇到过。"
+            }
+          ]
+        },
+        {
+          "id": "s2",
+          "spans": [
+            {
+              "message_id": "r2",
+              "start": 0,
+              "end": 14,
+              "text": "准备这么久被改期，难怪会烦。"
+            }
+          ]
+        },
+        {
+          "id": "s3",
+          "spans": [
+            {
+              "message_id": "r3",
+              "start": 0,
+              "end": 9,
+              "text": "可以先问问负责人。"
+            }
+          ]
+        }
+      ],
+      "segmentation_diagnosis": false
+    }
+  ]
+}

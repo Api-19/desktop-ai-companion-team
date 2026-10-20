@@ -1,0 +1,111 @@
+{
+  "package_format": "cped-annotation-package-v1",
+  "protocol_version": "rcpem-public-pilot-v1.1",
+  "material_version": "invented-demo-v1",
+  "batch_id": "invented-fg-demo",
+  "stage": "fg_stage1",
+  "events": [
+    {
+      "event_id": "invented-001",
+      "sample_role": "base",
+      "material_ref": "invented-demo-manifest",
+      "context": [
+        {
+          "message_id": "x1",
+          "speaker_id": "speaker-b",
+          "text": "今天打算做个小实验。"
+        }
+      ],
+      "partner": [
+        {
+          "message_id": "p1",
+          "speaker_id": "speaker-b",
+          "text": "新做的纸桥总是歪。"
+        }
+      ],
+      "f_units": [
+        {
+          "id": "u1",
+          "spans": [
+            {
+              "message_id": "p1",
+              "start": 0,
+              "end": 9,
+              "text": "新做的纸桥总是歪。"
+            }
+          ]
+        }
+      ],
+      "g_candidates": [
+        {
+          "candidate_id": "candidate-1",
+          "c": [
+            {
+              "message_id": "c1",
+              "speaker_id": "speaker-b",
+              "text": "纸塔总是倒。"
+            }
+          ],
+          "r": [
+            {
+              "message_id": "g1",
+              "speaker_id": "speaker-a",
+              "text": "试试加宽底座。"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "event_id": "invented-002",
+      "sample_role": "supplement",
+      "material_ref": "invented-demo-manifest",
+      "context": [
+        {
+          "message_id": "x1",
+          "speaker_id": "speaker-b",
+          "text": "今天打算做个小实验。"
+        }
+      ],
+      "partner": [
+        {
+          "message_id": "p1",
+          "speaker_id": "speaker-b",
+          "text": "明天能帮我搬纸箱吗？"
+        }
+      ],
+      "f_units": [
+        {
+          "id": "u1",
+          "spans": [
+            {
+              "message_id": "p1",
+              "start": 0,
+              "end": 10,
+              "text": "明天能帮我搬纸箱吗？"
+            }
+          ]
+        }
+      ],
+      "g_candidates": [
+        {
+          "candidate_id": "candidate-1",
+          "c": [
+            {
+              "message_id": "c1",
+              "speaker_id": "speaker-b",
+              "text": "纸塔总是倒。"
+            }
+          ],
+          "r": [
+            {
+              "message_id": "g1",
+              "speaker_id": "speaker-a",
+              "text": "试试加宽底座。"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
