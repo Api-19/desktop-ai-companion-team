@@ -1,0 +1,97 @@
+{
+  "package_format": "cped-annotation-package-v1",
+  "protocol_version": "rcpem-public-pilot-v1.2",
+  "material_version": "synthetic-training-v1.2",
+  "batch_id": "synthetic-training-batch",
+  "stage": "fg_stage2",
+  "events": [
+    {
+      "event_id": "synthetic-001",
+      "reply": [
+        {
+          "message_id": "r1",
+          "speaker_id": "speaker-a",
+          "text": "我以前也遇到过。"
+        },
+        {
+          "message_id": "r2",
+          "speaker_id": "speaker-a",
+          "text": "准备这么久被改期，难怪会烦。"
+        },
+        {
+          "message_id": "r3",
+          "speaker_id": "speaker-a",
+          "text": "要不先问问负责人？"
+        },
+        {
+          "message_id": "r4",
+          "speaker_id": "speaker-a",
+          "text": "小伙伴，陪我聊两句吧。"
+        },
+        {
+          "message_id": "r5",
+          "speaker_id": "speaker-a",
+          "text": "这个安排真周到。"
+        }
+      ],
+      "segments": [
+        {
+          "id": "s1",
+          "spans": [
+            {
+              "message_id": "r1",
+              "start": 0,
+              "end": 8,
+              "text": "我以前也遇到过。"
+            }
+          ]
+        },
+        {
+          "id": "s2",
+          "spans": [
+            {
+              "message_id": "r2",
+              "start": 0,
+              "end": 14,
+              "text": "准备这么久被改期，难怪会烦。"
+            }
+          ]
+        },
+        {
+          "id": "s3",
+          "spans": [
+            {
+              "message_id": "r3",
+              "start": 0,
+              "end": 9,
+              "text": "要不先问问负责人？"
+            }
+          ]
+        },
+        {
+          "id": "s4",
+          "spans": [
+            {
+              "message_id": "r4",
+              "start": 0,
+              "end": 11,
+              "text": "小伙伴，陪我聊两句吧。"
+            }
+          ]
+        },
+        {
+          "id": "s5",
+          "spans": [
+            {
+              "message_id": "r5",
+              "start": 0,
+              "end": 8,
+              "text": "这个安排真周到。"
+            }
+          ]
+        }
+      ],
+      "segmentation_diagnosis": false
+    }
+  ]
+}

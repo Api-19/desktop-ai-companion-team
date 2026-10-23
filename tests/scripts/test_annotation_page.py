@@ -65,6 +65,7 @@ def valid_export(stage="s_only"):
             record["f_step2"] = dict(
                 status="judged", mode="units", responded_groups=[[units[0]]], reason=""
             )
+        if stage in ("fg_stage1", "g_only"):
             record["g_status"] = "annotated" if event["g_candidates"] else "not_applicable"
             if not event["g_candidates"]:
                 record["g_reason"] = "没有候选"
@@ -82,6 +83,10 @@ def valid_export(stage="s_only"):
                         evidence=[candidate["c"][0]["message_id"]],
                     )
                 )
+        if stage == "g_only":
+            record["s"] = None
+            records.append(record)
+            continue
         for segment in target["segments"]:
             record["s"]["segments"].append(
                 dict(
@@ -179,7 +184,7 @@ def test_authoritative_example():
     data = json.loads((ROOT / "docs/data/annotation_record.example.json").read_text())
     for record in data["records"]:
         record.pop("training_material", None)
-    validate_export(data, [read("example_fg_stage1"), read("example_fg_stage2")])
+    validate_export(data, [read("v12_example_fg_stage1"), read("v12_example_fg_stage2")])
 
 
 @pytest.mark.parametrize(
@@ -307,6 +312,9 @@ def test_page_is_self_contained():
     assert '<script id="annotation-core">' in html
     assert "FileReader" in html
     assert "localStorage" in html
+    assert '>清除本机草稿</button>' in html
+    assert 'id="clear-draft" type="button" disabled' in html
+    assert "localStorage.removeItem(storageKey(state))" in html
 
 
 def test_node_build_and_completion(tmp_path):
@@ -341,6 +349,46 @@ process.stdout.write(JSON.stringify(output));
         )
         result = run_node(node, code, [p, p2, data])
         assert result.returncode == 0, result.stderr
+        ui = re.findall(r"<script>(.*?)</script>", PAGE.read_text(), re.S)[0]
+        cleared = run_node(
+            node,
+            core + "\n" + """
+const elements = new Map();
+globalThis.document = {getElementById(id) {
+  if (!elements.has(id)) elements.set(id, {});
+  return elements.get(id);
+}};
+const storage = new Map();
+globalThis.localStorage = {
+  setItem: (key, value) => storage.set(key, value),
+  removeItem: key => storage.delete(key)
+};
+let confirmed = false, confirmations = 0;
+globalThis.confirm = () => { confirmations++; return confirmed; };
+""" + ui + "\n" + """
+const pkg = JSON.parse(process.argv[1]);
+state = C.createState(pkg, 'tester-a', 'training');
+save();
+const key = storageKey(state);
+const otherKeys = [
+  'unrelated',
+  storageKey({...state, annotator_id:'tester-b'}),
+  storageKey({...state, package:{...pkg, batch_id:'another-batch'}}),
+  storageKey({...state, package:{...pkg, material_version:'another-version'}})
+];
+for (const other of otherKeys) localStorage.setItem(other, 'keep');
+$('clear-draft').onclick();
+if (!storage.has(key)) throw Error('cancel removed draft');
+confirmed = true;
+$('clear-draft').onclick();
+if (storage.has(key)) throw Error('draft retained');
+if (otherKeys.some(other => storage.get(other) !== 'keep')) throw Error('other key removed');
+if (confirmations !== 2) throw Error('confirmation missing');
+if ($('notice').textContent !== '本机草稿已清除') throw Error('clear notice missing');
+""",
+            p,
+        )
+        assert cleared.returncode == 0, cleared.stderr
         output = tmp_path / f"{stage}.json"
         output.write_text(result.stdout)
         command = [
@@ -635,3 +683,701 @@ def test_non_object_array_entry_is_a_validation_error(field):
         r["s"]["segments"].insert(0, None)
     with pytest.raises(ValueError):
         check_export(data, "fg_stage1")
+
+
+def self_export():
+    package = read("self_seg_s_only")
+    data = valid_export()
+    data.update({k: package[k] for k in ("batch_id", "material_version")})
+    template = data["records"][0]["s"]["segments"][0]
+    for record, event in zip(data["records"], package["events"], strict=True):
+        record.update({k: event[k] for k in ("event_id", "material_ref", "sample_role")})
+        segments = []
+        for message in event["reply"]:
+            raw = message["text"]
+            start, end = len(raw) - len(raw.lstrip()), len(raw.rstrip())
+            segments.append(
+                dict(
+                    **{
+                        k: copy.deepcopy(v)
+                        for k, v in template.items()
+                        if k not in ("id", "spans")
+                    },
+                    id=f"s{len(segments) + 1}",
+                    spans=[
+                        dict(
+                            message_id=message["message_id"],
+                            start=start,
+                            end=end,
+                            text=raw[start:end],
+                        )
+                    ],
+                )
+            )
+        record["s"] = dict(segments=segments, segmentation_source="self", segment_objections=[])
+    return data
+
+
+def test_self_package_cli():
+    test_package_cli("self_seg_s_only")
+
+
+@pytest.mark.parametrize(
+    "stage,flag",
+    [("s_only", True), ("fg_stage2", True), ("s_only", False), ("fg_stage2", False)],
+)
+def test_self_package_modes(stage, flag):
+    from scripts.annotation_package_check import validate_package
+
+    package = read(stage)
+    package["self_segmentation"] = flag
+    if flag:
+        for event in package["events"]:
+            event["segments"] = []
+            event.pop("segmentation_diagnosis")
+    validate_package(package)
+    run_core("AnnotationCore.validatePackage(JSON.parse(process.argv[1]));", package)
+
+
+@pytest.mark.parametrize(
+    "mutation",
+    [
+        lambda p: p["events"][0].update(segments=read("s_only")["events"][0]["segments"]),
+        lambda p: p["events"][0].update(segmentation_diagnosis=True),
+        lambda p: p["events"][0].update(segmentation_diagnosis=0),
+        lambda p: p["events"][0].pop("segments"),
+        lambda p: p.update(self_segmentation=1),
+        lambda p: p.update(self_segmentation="true"),
+    ],
+)
+def test_bad_self_package(mutation):
+    from scripts.annotation_package_check import validate_package
+
+    package = read("self_seg_s_only")
+    mutation(package)
+    with pytest.raises(ValueError):
+        validate_package(package)
+    run_core(
+        """
+let rejected=false;
+try {AnnotationCore.validatePackage(JSON.parse(process.argv[1]));} catch(e) {rejected=true;}
+if(!rejected)throw Error('invalid self package accepted');
+""",
+        package,
+    )
+
+
+@pytest.mark.parametrize("flag", [True, False])
+def test_stage1_rejects_self_field(flag):
+    from scripts.annotation_package_check import validate_package
+
+    package = read("fg_stage1")
+    package["self_segmentation"] = flag
+    with pytest.raises(ValueError):
+        validate_package(package)
+    run_core(
+        """
+let rejected=false;
+try {AnnotationCore.validatePackage(JSON.parse(process.argv[1]));} catch(e) {rejected=true;}
+if(!rejected)throw Error('stage1 accepted self field');
+""",
+        package,
+    )
+
+
+def test_valid_self_export():
+    check_export(self_export(), "self_seg_s_only")
+
+
+@pytest.mark.parametrize(
+    "mutation",
+    [
+        lambda s: s["segments"][1].update(spans=copy.deepcopy(s["segments"][0]["spans"])),
+        lambda s: s["segments"].pop(),
+        lambda s: s["segments"][0]["spans"][0].update(text="错误"),
+        lambda s: s.pop("segmentation_source"),
+        lambda s: s.update(segmentation_source="precut"),
+        lambda s: s.update(free_segmentation=[]),
+        lambda s: s["segments"].reverse(),
+        lambda s: s["segments"][1].update(id="s1"),
+        lambda s: s["segments"][0]["spans"].extend(s["segments"][1]["spans"]),
+        lambda s: s["segments"][0]["spans"][0].update(start=True),
+        lambda s: s["segments"][0]["spans"][0].update(message_id="unknown"),
+        lambda s: s["segments"][0].update(actions=[]),
+    ],
+)
+def test_bad_self_exports(mutation):
+    data = self_export()
+    mutation(data["records"][0]["s"])
+    with pytest.raises(ValueError):
+        check_export(data, "self_seg_s_only")
+    run_core(
+        """
+const C=AnnotationCore,[pkg,data]=JSON.parse(process.argv[1]);
+const state=C.createState(pkg,data.annotator_id,data.phase);
+state.batch_declaration=data.batch_declaration;
+state.records=Object.fromEntries(data.records.map(r=>[r.event_id,r]));
+if(!C.completion(state).length)throw Error('invalid self export accepted');
+""",
+        [read("self_seg_s_only"), data],
+    )
+
+
+@pytest.mark.parametrize("fg", [False, True])
+def test_node_self_segmentation_roundtrip(fg):
+    from scripts.annotation_export_check import validate_export
+
+    initial = read("fg_stage1") if fg else read("self_seg_s_only")
+    target = read("fg_stage2") if fg else initial
+    if fg:
+        target["self_segmentation"] = True
+        for event in target["events"]:
+            event.update(segments=[], segmentation_diagnosis=False)
+    output = run_core(
+        """
+const C=AnnotationCore,[pkg,target,fgData]=JSON.parse(process.argv[1]);
+let state=C.createState(pkg,'tester-a','training');
+state.batch_declaration={reply_seen:false,review_comments_read:false};
+if(fgData) {
+  for(const r of fgData.records) state.records[r.event_id]={...C.clone(r),s:null,_gLocked:true};
+  C.attachStage2(state,target);
+}
+if(!C.completion(state).length)throw Error('unconfirmed segmentation accepted');
+for(const e of target.events) {
+  const r=state.records[e.event_id], m=e.reply[0], length=Array.from(m.text).length;
+  const boundaries=fgData?[]:[{message_id:m.message_id,position:1},
+    {message_id:m.message_id,position:length-1},{message_id:m.message_id,position:6}]
+      .filter(b=>b.position<length);
+  C.lockSelfSegmentation(r,e,boundaries);
+  if(!fgData && e===target.events[0]) {
+    const expected=[{id:'s1',spans:[{message_id:'r1',start:2,end:6,text:'收到😀。'}]},
+      {id:'s2',spans:[{message_id:'r1',start:9,end:14,text:'我来画图。'}]},
+      {id:'s3',spans:[{message_id:'r2',start:1,end:8,text:'先量一下宽度。'}]}];
+    if(!C.same(r.s.segments.map(s=>({id:s.id,spans:s.spans})),expected))
+      throw Error('code point/trim/message split');
+  }
+  for(const s of r.s.segments) {
+    s.status='judged';s.actions=['INFORM'];
+    for(const k of Object.keys(C.FEATURES))s.modifiers[k]={value:'absent'};
+  }
+}
+const output=C.buildExport(state);
+if(output.records.some(r=>r.s.segmentation_source!=='self'||C.has(r.s,'free_segmentation')))
+  throw Error('self export fields');
+let resumed=C.importExport(C.createState(pkg,'tester-a','training'),output);
+if(fgData)C.attachStage2(resumed,target);
+if(!C.same(C.buildExport(resumed),output))throw Error('import roundtrip differs');
+if(fgData) {
+  const restored=C.clone(resumed), second=restored.stage2;
+  restored.stage2=null;C.attachStage2(restored,second);
+  if(C.completion(restored).length)throw Error('stage2 draft restore failed');
+}
+const e=target.events[0], r=resumed.records[e.event_id];
+r.s.segment_objections.push({segment_id:'s1',problem:'should_split',reason_code:'boundary',proposal:'拆开'});
+C.resetSelfSegmentation(r,e);
+if(r.s.segments.length||r.s.segment_objections.length||C.has(r.s,'segmentation_source'))
+  throw Error('S annotations retained');
+if(!C.completion(resumed).length)throw Error('reset still complete');
+C.lockSelfSegmentation(r,e,[]);
+if(r.s.segments.length!==e.reply.length||r.s.segments.some(s=>s.status!==null||s.actions.length))
+  throw Error('zero boundaries/reset labels');
+process.stdout.write(JSON.stringify(output));
+""",
+        [initial, target, valid_export("fg_stage1") if fg else None],
+    )
+    validate_export(json.loads(output), [initial, target] if fg else [initial])
+
+
+def test_node_self_segmentation_ui():
+    ui = re.findall(r"<script>(.*?)</script>", PAGE.read_text(), re.S)[0]
+    run_core(
+        """
+class Element {
+  constructor(tag){this.tag=tag;this.children=[];this.textContent='';this.classList={add(){}};}
+  append(...nodes){this.children.push(...nodes);}
+  replaceChildren(...nodes){this.children=nodes;}
+  setAttribute(){}
+}
+const elements=new Map();
+globalThis.document={createElement:tag=>new Element(tag),createTextNode:text=>({textContent:text}),
+  getElementById(id){
+    if(!elements.has(id))elements.set(id,new Element('div'));return elements.get(id);
+  }};
+globalThis.localStorage={setItem(){}};
+globalThis.Option=function(text,value){this.textContent=text;this.value=value;};
+let confirmed=false, confirmations=0;
+globalThis.confirm=()=>{confirmations++;return confirmed;};
+""" + ui + "\n" + """
+state=C.createState(JSON.parse(process.argv[1]),'tester-a','training');
+const flatten=n=>[n,...(n.children||[]).flatMap(flatten)];
+const findButton=text=>flatten($('event-view')).find(n=>n.tag==='button'&&n.textContent===text);
+renderEvent();
+if(findButton('重新切分')||!findButton('确定切分'))throw Error('initial segmentation UI');
+const boundary=flatten($('event-view')).find(n=>n.tag==='button'&&n.textContent==='·');
+boundary.onclick();
+findButton('确定切分').onclick();
+const r=state.records[state.package.events[0].event_id];
+if(r.s.segmentation_source!=='self'||findButton('确定切分')||!findButton('重新切分'))
+  throw Error('confirmation did not lock');
+r.s.segments[0].status='judged';r.s.segments[0].actions=['ACK'];
+const previous=JSON.stringify(r.s);
+findButton('重新切分').onclick();
+if(JSON.stringify(r.s)!==previous)throw Error('cancel erased labels');
+confirmed=true;findButton('重新切分').onclick();
+if(confirmations!==2||r.s.segments.length||!findButton('确定切分'))
+  throw Error('reset confirmation or flow');
+if($('notice').className==='error')throw Error($('notice').textContent);
+""",
+        read("self_seg_s_only"),
+    )
+
+
+def test_node_self_import_cannot_bypass_reset():
+    run_core(
+        """
+const C=AnnotationCore,[pkg,data]=JSON.parse(process.argv[1]);
+let state=C.importExport(C.createState(pkg,data.annotator_id,data.phase),data);
+const next=C.clone(state),e=pkg.events[0],r=next.records[e.event_id];
+C.lockSelfSegmentation(r,e,[{message_id:'r1',position:6}]);
+for(const s of r.s.segments) {
+  s.status='judged';s.actions=['INFORM'];
+  for(const k of Object.keys(C.FEATURES))s.modifiers[k]={value:'absent'};
+}
+const changed=C.buildExport(next);
+let rejected=false;
+try {C.importExport(state,changed);} catch(error) {rejected=true;}
+if(!rejected)throw Error('import bypassed segmentation lock');
+const untouched=C.clone(state.records[pkg.events[1].event_id]);
+C.resetSelfSegmentation(state.records[e.event_id],e);
+if(!C.same(untouched,state.records[pkg.events[1].event_id]))throw Error('other event erased');
+state=C.importExport(state,changed);
+if(!C.same(C.buildExport(state),changed))throw Error('import after reset failed');
+""",
+        [read("self_seg_s_only"), self_export()],
+    )
+
+
+@pytest.mark.parametrize("mutation", [
+    lambda p: p["events"][0].update(reply=[]),
+    lambda p: p["events"][0].update(f_units=[]),
+    lambda p: p["events"][0].update(segments=[]),
+    lambda p: p["events"][0].update(segmentation_diagnosis=False),
+    lambda p: p.update(self_segmentation=False),
+    lambda p: p["events"][0]["permission"].pop("note"),
+    lambda p: p["events"][0]["permission"].update(tease="invalid"),
+    lambda p: p["events"][0].update(g_candidates=[]),
+])
+def test_g_only_package_rejects(mutation):
+    from scripts.annotation_package_check import validate_package
+
+    package = read("g_only")
+    mutation(package)
+    with pytest.raises(ValueError):
+        validate_package(package)
+
+
+def test_g_only_package_and_export():
+    from scripts.annotation_package_check import validate_package
+
+    validate_package(read("g_only"))
+    check_export(valid_export("g_only"), "g_only")
+
+
+@pytest.mark.parametrize("mutation", [
+    lambda d: d["records"][0]["g_pairs"].pop(),
+    lambda d: d["records"][0]["g_pairs"][0].update(label="invalid"),
+    lambda d: d["records"][0]["g_pairs"][0].update(evidence=["missing"]),
+    lambda d: d["records"][0]["g_pairs"][0].update(reason=""),
+    lambda d: d["records"][0]["g_pairs"][0].update(evidence=[]),
+    lambda d: d["records"][0]["g_pairs"][0].update(c_message_ids=[]),
+    lambda d: d["records"][0]["g_pairs"][0].update(r_message_ids=[]),
+    lambda d: d["records"][0]["g_pairs"][0].update(x_message_ids=[]),
+    lambda d: d["records"][0].update(s={}),
+    lambda d: d["records"][0].update(f_step1={}),
+    lambda d: d["records"][0].update(f_step2={}),
+    lambda d: d["records"].pop(),
+])
+def test_g_only_export_rejects(mutation):
+    data = valid_export("g_only")
+    mutation(data)
+    with pytest.raises(ValueError):
+        check_export(data, "g_only")
+
+
+def test_node_g_only_annotation_lock_export():
+    output = run_core("""
+const C=AnnotationCore, pkg=JSON.parse(process.argv[1]);
+const state=C.createState(pkg,'tester-a','training');
+state.batch_declaration={reply_seen:false,review_comments_read:false};
+if(!C.completion(state).length)throw Error('blank annotations accepted');
+for(const e of pkg.events){
+  const r=state.records[e.event_id];
+  if(r.g_pairs.some(p=>p.label!==null))throw Error('default label');
+  for(const pair of r.g_pairs){
+    pair.label='applicable';pair.reason='前提成立';pair.evidence=[pair.c_message_ids[0]];
+  }
+  if(C.gErrors(r,e,false).length)throw Error('valid G rejected');
+  if(!C.gErrors(r,e).length)throw Error('unlocked G accepted');
+  r._gLocked=true;
+}
+if(C.readyForStage2(state))throw Error('G-only allows stage2');
+C.applyExposure(state);
+const data=C.buildExport(state);
+if(JSON.stringify(data).includes('permission'))throw Error('permission exported');
+const restored=C.importExport(C.createState(pkg,'tester-a','training'),data);
+const changed=C.clone(data);changed.records[0].g_pairs[0].label='uncertain';
+let blocked=false;try{C.importExport(restored,changed);}catch(e){blocked=true;}
+if(!blocked)throw Error('locked G changed by import');
+state.batch_declaration.reply_seen=true;
+state.event_exposure_exceptions=[{event_id:pkg.events[1].event_id,reply_seen:false,review_comments_read:false,note:'例外'}];
+C.applyExposure(state);
+const exposed=C.buildExport(state);
+if(!exposed.records[0].g_reply_seen_before_judgment||
+   exposed.records[1].g_reply_seen_before_judgment)throw Error('exposure flags differ');
+console.log(JSON.stringify([data,exposed]));
+""", read("g_only"))
+    for data in json.loads(output):
+        check_export(data, "g_only")
+
+
+V12 = "rcpem-public-pilot-v1.2"
+FEATURES_V12 = [
+    "mitigation", "politeness", "emotion", "evaluation", "rapport", "humor", "irony",
+    "intensification",
+]
+
+
+def v12_export(self_segmentation=False):
+    data = self_export() if self_segmentation else valid_export()
+    package = read("v12_self_seg_s_only" if self_segmentation else "v12_s_only")
+    data.update({k: package[k] for k in ("protocol_version", "material_version", "batch_id")})
+    for record in data["records"]:
+        for segment in record["s"]["segments"]:
+            segment["modifiers"] = {k: {"value": "absent"} for k in FEATURES_V12}
+            segment["content_attributes"] = {"self_disclosure": {"value": "absent"}}
+    return data, package
+
+
+@pytest.mark.parametrize("name", ["s_only", "self_seg_s_only", "example_fg_stage1",
+                                  "example_fg_stage2"])
+def test_v12_package_cli(name):
+    test_package_cli("v12_" + name)
+
+
+@pytest.mark.parametrize("protocol", [None, "rcpem-public-pilot-v1.0", "rcpem-public-pilot-v1.3"])
+def test_unknown_protocol_rejected(protocol):
+    from scripts.annotation_package_check import validate_package
+
+    package = read("s_only")
+    package["protocol_version"] = protocol
+    with pytest.raises(ValueError):
+        validate_package(package)
+    assert run_core("""
+const p=JSON.parse(process.argv[1]);
+try {AnnotationCore.validatePackage(p);} catch(e) {process.stdout.write('rejected');}
+""", package) == "rejected"
+
+
+@pytest.mark.parametrize("self_segmentation", [False, True])
+def test_v12_valid_export(self_segmentation):
+    from scripts.annotation_export_check import validate_export
+
+    data, package = v12_export(self_segmentation)
+    validate_export(data, [package])
+
+
+@pytest.mark.parametrize("key", [*FEATURES_V12, "self_disclosure"])
+@pytest.mark.parametrize("value", ["present", "absent", "unclear"])
+def test_v12_valid_feature_states(key, value):
+    from scripts.annotation_export_check import validate_export
+
+    data, package = v12_export()
+    segment = data["records"][0]["s"]["segments"][0]
+    fields = segment["content_attributes"] if key == "self_disclosure" else segment["modifiers"]
+    if key == "evaluation" and value == "present":
+        value = "positive"
+    fields[key] = {"value": value}
+    if value in ("present", "positive"):
+        fields[key]["evidence"] = copy.deepcopy(segment["spans"])
+        if key == "irony":
+            fields[key]["reason"] = "字面肯定但语境表示否定"
+            m = package["events"][0]["partner"][0]
+            fields[key]["evidence"].append(dict(message_id=m["message_id"], start=0,
+                                               end=len(m["text"]), text=m["text"]))
+    elif value == "unclear":
+        fields[key]["reason"] = "语境不足"
+    validate_export(data, [package])
+    run_core("""
+const [p,d]=JSON.parse(process.argv[1]), C=AnnotationCore;
+const s=C.createState(p,d.annotator_id,d.phase);
+s.batch_declaration=d.batch_declaration;
+s.records=Object.fromEntries(d.records.map(r=>[r.event_id,r]));
+if(C.completion(s).length)throw Error(C.completion(s).join('\\n'));
+""", [package, data])
+
+
+@pytest.mark.parametrize("value", ["positive", "negative", "mixed", "absent", "unclear"])
+def test_v12_evaluation_values(value):
+    from scripts.annotation_export_check import validate_export
+
+    data, package = v12_export()
+    segment = data["records"][0]["s"]["segments"][0]
+    m = segment["modifiers"]["evaluation"] = {"value": value}
+    if value in ("positive", "negative", "mixed"):
+        m["evidence"] = copy.deepcopy(segment["spans"])
+    if value == "unclear":
+        m["reason"] = "褒贬不清"
+    validate_export(data, [package])
+
+
+@pytest.mark.parametrize("key", [*FEATURES_V12, "self_disclosure"])
+@pytest.mark.parametrize("error", ["missing", "invalid", "no_evidence", "wrong_slice",
+                                   "no_reason", "absent_evidence", "unselected"])
+def test_v12_feature_rules_reject(key, error):
+    from scripts.annotation_export_check import validate_export
+
+    data, package = v12_export()
+    segment = data["records"][0]["s"]["segments"][0]
+    fields = segment["content_attributes"] if key == "self_disclosure" else segment["modifiers"]
+    present = "positive" if key == "evaluation" else "present"
+    if error == "unselected":
+        fields[key] = {"value": None}
+    elif error == "missing":
+        fields.pop(key)
+    elif error == "invalid":
+        fields[key] = {"value": "present" if key == "evaluation" else "positive"}
+    elif error == "no_evidence":
+        fields[key] = {"value": present}
+    elif error == "wrong_slice":
+        fields[key] = {"value": present, "evidence": [dict(segment["spans"][0], text="错误")],
+                       "reason": "反向立场"}
+    elif error == "no_reason":
+        fields[key] = {"value": "unclear", "reason": " "}
+    else:
+        fields[key] = {"value": "absent", "evidence": segment["spans"]}
+    with pytest.raises(ValueError):
+        validate_export(data, [package])
+    assert run_core("""
+const [p,d]=JSON.parse(process.argv[1]), C=AnnotationCore;
+const s=C.createState(p,d.annotator_id,d.phase);
+s.batch_declaration=d.batch_declaration;
+s.records=Object.fromEntries(d.records.map(r=>[r.event_id,r]));
+process.stdout.write(String(C.completion(s).length>0));
+""", [package, data]) == "true"
+
+
+@pytest.mark.parametrize("change", [
+    lambda s: s["modifiers"].update(affection={"value": "absent"}),
+    lambda s: s.pop("content_attributes"),
+    lambda s: s["modifiers"].update(irony={"value": "present", "evidence": s["spans"]}),
+    lambda s: s.update(actions=["REQUEST"], subtype="promise"),
+    lambda s: s.update(actions=["REQUEST"], subtype={"REQUEST": "other"}),
+    lambda s: s.update(actions=["INFORM"], subtype="seek_care"),
+])
+def test_v12_segment_rules_reject(change):
+    from scripts.annotation_export_check import validate_export
+
+    data, package = v12_export()
+    change(data["records"][0]["s"]["segments"][0])
+    with pytest.raises(ValueError):
+        validate_export(data, [package])
+    assert run_core("""
+const [p,d]=JSON.parse(process.argv[1]),C=AnnotationCore;
+const s=C.createState(p,d.annotator_id,d.phase);
+s.batch_declaration=d.batch_declaration;
+s.records=Object.fromEntries(d.records.map(r=>[r.event_id,r]));
+process.stdout.write(String(C.completion(s).length>0));
+""", [package, data]) == "true"
+
+
+@pytest.mark.parametrize("subtype", [None, "seek_care", {"REQUEST": "seek_care"}])
+def test_v12_request_subtype(subtype):
+    from scripts.annotation_export_check import validate_export
+
+    data, package = v12_export()
+    data["records"][0]["s"]["segments"][0].update(actions=["REQUEST"], subtype=subtype)
+    validate_export(data, [package])
+
+
+@pytest.mark.parametrize("self_segmentation", [False, True])
+def test_node_v12_annotation_export_cli(tmp_path, self_segmentation):
+    name = "v12_self_seg_s_only" if self_segmentation else "v12_s_only"
+    output = run_core("""
+const C=AnnotationCore,p=JSON.parse(process.argv[1]);
+const s=C.createState(p,'tester-a','training');
+s.batch_declaration={reply_seen:false,review_comments_read:false};
+for(const e of p.events) {
+  const r=s.records[e.event_id];
+  if(p.self_segmentation)C.lockSelfSegmentation(r,e,[],p.protocol_version);
+  else if(e.segmentation_diagnosis)r.s.free_segmentation=[];
+  for(const seg of r.s.segments) {
+    if(Object.keys(seg.modifiers).length!==8 || Object.values(seg.modifiers).some(m=>m.value!==null)
+       || seg.content_attributes.self_disclosure.value!==null)throw Error('blank defaults');
+    seg.status='judged';seg.actions=['REQUEST'];seg.subtype='seek_care';
+    for(const k of Object.keys(seg.modifiers))seg.modifiers[k]={value:'absent'};
+    seg.modifiers.evaluation={value:'mixed',evidence:C.clone(seg.spans)};
+    seg.content_attributes.self_disclosure={value:'present',evidence:C.clone(seg.spans)};
+  }
+}
+const output=C.buildExport(s);
+const restored=C.importExport(C.createState(p,'tester-a','training'),output);
+if(!C.same(C.buildExport(restored),output))throw Error('roundtrip');
+if(output.protocol_version!==p.protocol_version)throw Error('export protocol');
+process.stdout.write(JSON.stringify(output));
+""", read(name))
+    path = tmp_path / "export.json"
+    path.write_text(output)
+    result = subprocess.run([sys.executable, str(ROOT / "scripts/annotation_export_check.py"),
+                             str(path), "--package", str(PACKAGES / f"{name}.json")],
+                            capture_output=True, text=True)
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+def test_v12_export_protocol_must_match_package():
+    from scripts.annotation_export_check import validate_export
+
+    data, package = v12_export()
+    data["protocol_version"] = "rcpem-public-pilot-v1.1"
+    with pytest.raises(ValueError):
+        validate_export(data, [package])
+
+
+@pytest.mark.parametrize("mode", ["g_only", "fg", "fg_self"])
+def test_node_v12_g_and_fg_flows(mode):
+    from scripts.annotation_export_check import validate_export
+
+    fg = mode != "g_only"
+    initial = read("fg_stage1" if fg else "g_only")
+    initial["protocol_version"] = V12
+    target = read("fg_stage2") if fg else None
+    if target:
+        target["protocol_version"] = V12
+        if mode == "fg_self":
+            target["self_segmentation"] = True
+            for event in target["events"]:
+                event.update(segments=[], segmentation_diagnosis=False)
+    output = run_core("""
+const C=AnnotationCore,[p,target,answers]=JSON.parse(process.argv[1]);
+let state=C.createState(p,answers.annotator_id,answers.phase);
+state.batch_declaration=answers.batch_declaration;
+for(const a of answers.records) {
+  const r=state.records[a.event_id];
+  r.f_step1=a.f_step1;r.g_status=a.g_status;r.g_pairs=a.g_pairs;r._gLocked=true;
+  if(a.g_reason)r.g_reason=a.g_reason;
+}
+if(target) {
+  C.attachStage2(state,target);
+  for(const e of target.events) {
+    const r=state.records[e.event_id];
+    r.f_step2=answers.records.find(a=>a.event_id===e.event_id).f_step2;
+    if(target.self_segmentation)C.lockSelfSegmentation(r,e,[],p.protocol_version);
+    else if(e.segmentation_diagnosis)r.s.free_segmentation=[];
+    for(const seg of r.s.segments) {
+      if(Object.keys(seg.modifiers).length!==8||seg.content_attributes.self_disclosure.value!==null)
+        throw Error('stage2 version');
+      seg.status='judged';seg.actions=['COMMIT','SOCIAL','REQUEST'];
+      seg.reason_code='multi_function';
+      seg.subtype={COMMIT:'offer',SOCIAL:'thank',REQUEST:'seek_care'};
+      for(const k of Object.keys(seg.modifiers))seg.modifiers[k]={value:'absent'};
+      seg.content_attributes.self_disclosure={value:'absent'};
+    }
+  }
+}
+const output=C.buildExport(state);
+let restored=C.importExport(C.createState(p,answers.annotator_id,answers.phase),output);
+if(target)C.attachStage2(restored,target);
+if(!C.same(C.buildExport(restored),output))throw Error('resume');
+process.stdout.write(JSON.stringify(output));
+""", [initial, target, valid_export("fg_stage1" if fg else "g_only")])
+    validate_export(json.loads(output), [initial, target] if fg else [initial])
+
+
+def test_node_v12_fields_ui():
+    ui = re.findall(r"<script>(.*?)</script>", PAGE.read_text(), re.S)[0]
+    run_core("""
+class Element {
+  constructor(tag){this.tag=tag;this.children=[];this.textContent='';this.classList={add(){}};}
+  append(...nodes){this.children.push(...nodes);}
+  replaceChildren(...nodes){this.children=nodes;}
+  get options(){return this.children;}
+  contains(node){return this===node;}
+}
+const elements=new Map();
+globalThis.document={createElement:tag=>new Element(tag),createTextNode:text=>({textContent:text}),
+  getElementById(id){
+    if(!elements.has(id))elements.set(id,new Element('div'));return elements.get(id);
+  },
+  createRange(){return {
+    selectNodeContents(){},
+    setEnd(node,offset){this.prefix=node.textContent.slice(0,offset);},
+    toString(){return this.prefix;}
+  };}
+};
+globalThis.localStorage={setItem(){}};
+globalThis.Option=function(text,value){this.textContent=text;this.value=value;};
+""" + ui + "\n" + """
+const p=JSON.parse(process.argv[1]);state=C.createState(p,'tester-a','training');
+const e=p.events[0],r=state.records[e.event_id],seg=r.s.segments[0];
+state.batch_declaration={reply_seen:false,review_comments_read:false};
+r.s.free_segmentation=[];seg.status='judged';seg.actions=['REQUEST'];
+const flatten=n=>[n,...(n.children||[]).flatMap(flatten)];
+const feature=key=>flatten($('event-view')).find(
+  n=>n.className==='feature'&&n.children[0].textContent.startsWith(key));
+const radios=box=>flatten(box).filter(n=>n.type==='radio');
+const choose=(key,value)=>radios(feature(key)).find(n=>n.value===value).onchange();
+renderEvent();
+if(flatten($('event-view')).filter(n=>n.className==='feature').length!==r.s.segments.length*9)
+  throw Error('field count');
+for(const k of [...Object.keys(C.FEATURES_V12),'self_disclosure']) {
+  if(radios(feature(k)).some(n=>n.checked))
+  throw Error('default selection');
+  if(!feature(k).children[0].textContent.includes((C.FEATURES_V12[k]||C.CONTENT_V12[k])))
+  throw Error('definition');
+}
+if(!C.same(radios(feature('evaluation')).map(n=>n.value),
+  ['positive','negative','mixed','absent','unclear']))
+  throw Error('evaluation choices');
+if(!feature('intensification').children[0].textContent.includes('候选'))
+  throw Error('candidate label');
+const subtype=flatten($('event-view')).find(
+  n=>n.tag==='select'&&n.options.some(o=>o.value==='seek_care'));
+if(!subtype||!C.same(subtype.options.map(o=>o.value),['','seek_care']))
+  throw Error('REQUEST dropdown');
+subtype.value='seek_care';subtype.onchange();if(seg.subtype!=='seek_care')
+  throw Error('REQUEST selection');
+function addEvidence(key,text) {
+  const box=feature(key),raw=flatten(box).find(
+    n=>n.className==='evidence-text'&&n.textContent===text);
+  const value=raw.textContent, start=value.indexOf('😀'), offset=start<0?0:start;
+  const selected=start<0?value:'😀';
+  globalThis.window={getSelection:()=>({rangeCount:1,isCollapsed:false,
+    getRangeAt:()=>({startContainer:raw,endContainer:raw,startOffset:offset,toString:()=>selected}),removeAllRanges(){}})};
+  flatten(box).find(n=>n.children?.includes(raw)).children.find(n=>n.tag==='button'&&n.textContent==='添加这段证据').onclick();
+}
+choose('evaluation','negative');addEvidence('evaluation',seg.spans[0].text);
+const ev=seg.modifiers.evaluation.evidence[0];
+if(ev.text!=='😀'||ev.start!==4||ev.end!==5)
+  throw Error('unicode drag evidence');
+choose('self_disclosure','present');addEvidence('self_disclosure',seg.spans[0].text);
+if(seg.content_attributes.self_disclosure.evidence[0].text!=='😀')
+  throw Error('content drag evidence');
+choose('irony','present');
+const reason=flatten(feature('irony')).find(n=>n.tag==='textarea');
+if(!reason)
+  throw Error('irony reason control');reason.value='字面肯定而语境否定';reason.oninput();
+addEvidence('irony',e.partner[0].text);
+if(seg.modifiers.irony.evidence[0].message_id!==e.partner[0].message_id)
+  throw Error('irony context evidence');
+choose('irony','absent');if(!C.same(seg.modifiers.irony,{value:'absent'}))
+  throw Error('stale details');
+choose('politeness','unclear');
+const unclear=flatten(feature('politeness')).find(n=>n.tag==='textarea');
+unclear.value='语境不明';unclear.oninput();if(seg.modifiers.politeness.reason!=='语境不明')
+  throw Error('unclear reason');
+const key=storageKey(state),legacy=C.createState(
+  {...p,protocol_version:'rcpem-public-pilot-v1.1'},'tester-a','training');
+if(key===storageKey(legacy)||!storageKey(legacy).startsWith('annotation-v1.1:'))
+  throw Error('versioned drafts');
+if($('notice').className==='error')
+  throw Error($('notice').textContent);
+""", read("v12_s_only"))

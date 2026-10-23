@@ -1,6 +1,6 @@
 {
-  "protocol_version": "rcpem-public-pilot-v1.1",
-  "material_version": "synthetic-training-v1.1",
+  "protocol_version": "rcpem-public-pilot-v1.2",
+  "material_version": "synthetic-training-v1.2",
   "annotator_id": "demo-only",
   "phase": "training",
   "batch_id": "synthetic-training-batch",
@@ -62,7 +62,17 @@
           {
             "message_id": "r3",
             "speaker_id": "speaker-a",
-            "text": "可以先问问负责人。"
+            "text": "要不先问问负责人？"
+          },
+          {
+            "message_id": "r4",
+            "speaker_id": "speaker-a",
+            "text": "小伙伴，陪我聊两句吧。"
+          },
+          {
+            "message_id": "r5",
+            "speaker_id": "speaker-a",
+            "text": "这个安排真周到。"
           }
         ],
         "focus_units": [
@@ -136,7 +146,7 @@
             "u2"
           ]
         ],
-        "reason": "示范第一段承接遭遇，第二段认可感受；第三段继续承接改期事件"
+        "reason": "教学示范：先承接遭遇，再认可感受；随后建议询问、请求陪伴并评价安排，首次承接单元顺序保持不变。"
       },
       "s": {
         "segments": [
@@ -157,15 +167,32 @@
             "candidates": [],
             "subtype": null,
             "modifiers": {
+              "mitigation": {
+                "value": "absent"
+              },
+              "politeness": {
+                "value": "absent"
+              },
+              "emotion": {
+                "value": "absent"
+              },
+              "evaluation": {
+                "value": "absent"
+              },
+              "rapport": {
+                "value": "absent"
+              },
               "humor": {
                 "value": "absent"
               },
-              "affection": {
+              "irony": {
                 "value": "absent"
               },
-              "seek_care": {
+              "intensification": {
                 "value": "absent"
-              },
+              }
+            },
+            "content_attributes": {
               "self_disclosure": {
                 "value": "present",
                 "evidence": [
@@ -196,15 +223,32 @@
             "candidates": [],
             "subtype": null,
             "modifiers": {
+              "mitigation": {
+                "value": "absent"
+              },
+              "politeness": {
+                "value": "absent"
+              },
+              "emotion": {
+                "value": "absent"
+              },
+              "evaluation": {
+                "value": "absent"
+              },
+              "rapport": {
+                "value": "absent"
+              },
               "humor": {
                 "value": "absent"
               },
-              "affection": {
+              "irony": {
                 "value": "absent"
               },
-              "seek_care": {
+              "intensification": {
                 "value": "absent"
-              },
+              }
+            },
+            "content_attributes": {
               "self_disclosure": {
                 "value": "absent"
               }
@@ -217,7 +261,7 @@
                 "message_id": "r3",
                 "start": 0,
                 "end": 9,
-                "text": "可以先问问负责人。"
+                "text": "要不先问问负责人？"
               }
             ],
             "status": "judged",
@@ -227,15 +271,152 @@
             "candidates": [],
             "subtype": null,
             "modifiers": {
+              "mitigation": {
+                "value": "present",
+                "evidence": [
+                  {
+                    "message_id": "r3",
+                    "start": 0,
+                    "end": 2,
+                    "text": "要不"
+                  }
+                ]
+              },
+              "politeness": {
+                "value": "absent"
+              },
+              "emotion": {
+                "value": "absent"
+              },
+              "evaluation": {
+                "value": "absent"
+              },
+              "rapport": {
+                "value": "absent"
+              },
               "humor": {
                 "value": "absent"
               },
-              "affection": {
+              "irony": {
                 "value": "absent"
               },
-              "seek_care": {
+              "intensification": {
+                "value": "absent"
+              }
+            },
+            "content_attributes": {
+              "self_disclosure": {
+                "value": "absent"
+              }
+            }
+          },
+          {
+            "id": "s4",
+            "spans": [
+              {
+                "message_id": "r4",
+                "start": 0,
+                "end": 11,
+                "text": "小伙伴，陪我聊两句吧。"
+              }
+            ],
+            "status": "judged",
+            "actions": [
+              "REQUEST"
+            ],
+            "candidates": [],
+            "subtype": "seek_care",
+            "modifiers": {
+              "mitigation": {
                 "value": "absent"
               },
+              "politeness": {
+                "value": "absent"
+              },
+              "emotion": {
+                "value": "absent"
+              },
+              "evaluation": {
+                "value": "absent"
+              },
+              "rapport": {
+                "value": "present",
+                "evidence": [
+                  {
+                    "message_id": "r4",
+                    "start": 0,
+                    "end": 3,
+                    "text": "小伙伴"
+                  }
+                ]
+              },
+              "humor": {
+                "value": "absent"
+              },
+              "irony": {
+                "value": "absent"
+              },
+              "intensification": {
+                "value": "absent"
+              }
+            },
+            "content_attributes": {
+              "self_disclosure": {
+                "value": "absent"
+              }
+            }
+          },
+          {
+            "id": "s5",
+            "spans": [
+              {
+                "message_id": "r5",
+                "start": 0,
+                "end": 8,
+                "text": "这个安排真周到。"
+              }
+            ],
+            "status": "judged",
+            "actions": [
+              "EVALUATE"
+            ],
+            "candidates": [],
+            "subtype": null,
+            "modifiers": {
+              "mitigation": {
+                "value": "absent"
+              },
+              "politeness": {
+                "value": "absent"
+              },
+              "emotion": {
+                "value": "absent"
+              },
+              "evaluation": {
+                "value": "positive",
+                "evidence": [
+                  {
+                    "message_id": "r5",
+                    "start": 5,
+                    "end": 7,
+                    "text": "周到"
+                  }
+                ]
+              },
+              "rapport": {
+                "value": "absent"
+              },
+              "humor": {
+                "value": "absent"
+              },
+              "irony": {
+                "value": "absent"
+              },
+              "intensification": {
+                "value": "absent"
+              }
+            },
+            "content_attributes": {
               "self_disclosure": {
                 "value": "absent"
               }
@@ -249,10 +430,10 @@
     }
   ],
   "legacy_projection": {
-    "version": "a2e-proj-v0",
+    "version": "a2e-proj-v1-draft",
     "event_id": "synthetic-001",
     "first_segment_id": "s1",
     "label": "U",
-    "reason": "首段 INFORM 是直接接话还是独立自述无法唯一确定，不能仅凭 self_disclosure 判为 C。"
+    "reason": "草案，待研究侧（RC-PEM）核对后定稿；首段 INFORM 是直接接话还是独立自述无法唯一确定，不能仅凭 self_disclosure 判为 C。"
   }
 }

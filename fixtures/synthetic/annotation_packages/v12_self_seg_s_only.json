@@ -1,0 +1,58 @@
+{
+  "package_format": "cped-annotation-package-v1",
+  "protocol_version": "rcpem-public-pilot-v1.2",
+  "material_version": "invented-self-seg-v1",
+  "batch_id": "invented-self-seg-demo",
+  "stage": "s_only",
+  "self_segmentation": true,
+  "events": [
+    {
+      "event_id": "invented-self-001",
+      "sample_role": "base",
+      "material_ref": "invented-self-seg-manifest",
+      "context": [],
+      "partner": [
+        {
+          "message_id": "p1",
+          "speaker_id": "speaker-b",
+          "text": "纸桥的草图能帮忙画一下吗？"
+        }
+      ],
+      "reply": [
+        {
+          "message_id": "r1",
+          "speaker_id": "speaker-a",
+          "text": "  收到😀。 \t 我来画图。 \n"
+        },
+        {
+          "message_id": "r2",
+          "speaker_id": "speaker-a",
+          "text": "\n先量一下宽度。  "
+        }
+      ],
+      "segments": []
+    },
+    {
+      "event_id": "invented-self-002",
+      "sample_role": "supplement",
+      "material_ref": "invented-self-seg-manifest",
+      "context": [],
+      "partner": [
+        {
+          "message_id": "p1",
+          "speaker_id": "speaker-b",
+          "text": "我把彩纸放在桌上了。"
+        }
+      ],
+      "reply": [
+        {
+          "message_id": "r1",
+          "speaker_id": "speaker-a",
+          "text": "谢谢！"
+        }
+      ],
+      "segments": [],
+      "segmentation_diagnosis": false
+    }
+  ]
+}

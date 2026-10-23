@@ -9,6 +9,7 @@ from pathlib import Path
 if __package__:
     from .annotation_package_check import (
         PROTOCOL,
+        PROTOCOL_V12,
         array,
         load_package,
         obj,
@@ -21,6 +22,7 @@ if __package__:
 else:
     from annotation_package_check import (
         PROTOCOL,
+        PROTOCOL_V12,
         array,
         load_package,
         obj,
@@ -46,6 +48,10 @@ ACTIONS = {
     "OTHER",
 }
 FEATURES = {"humor", "affection", "seek_care", "self_disclosure"}
+FEATURES_V12 = {
+    "mitigation", "politeness", "emotion", "evaluation", "rapport", "humor", "irony",
+    "intensification",
+}
 REASONS = {
     "context_missing",
     "ambiguous_intent",
@@ -161,19 +167,52 @@ def validate_g(record, event, exposed):
         choices(pair.get("evidence"), available, loc + ".evidence", nonempty=True)
 
 
-def validate_s(value, target):
+def validate_self_segments(segments, target, where):
+    known = {m["message_id"]: m for m in target["reply"]}
+    order = {mid: index for index, mid in enumerate(known)}
+    actual = []
+    for index, segment in enumerate(segments, 1):
+        require(segment.get("id") == f"s{index}", where, "self segment IDs must be s1, s2, ...")
+        values = array(segment.get("spans"), where + ".spans")
+        require(len(values) == 1, where, "self segment must have one span within one message")
+        spans(values, known, where + ".spans")
+        span = values[0]
+        string(span["text"], where + ".text")
+        actual.extend((order[span["message_id"]], i) for i in range(span["start"], span["end"]))
+    require(actual == sorted(set(actual)), where, "self segments overlap or are out of order")
+    expected = {
+        (index, i)
+        for index, message in enumerate(target["reply"])
+        for i, char in enumerate(message["text"])
+        if not char.isspace()
+    }
+    require(
+        expected <= set(actual), where, "self segments must cover all non-whitespace characters"
+    )
+
+
+def validate_s(value, target, self_segmentation=False, protocol=PROTOCOL, context=()):
+    v12 = protocol == PROTOCOL_V12
+    subtypes = {**SUBTYPES, "REQUEST": {"seek_care"}} if v12 else SUBTYPES
     loc = target["event_id"] + ".s"
     obj(value, loc)
     segments = array(value.get("segments"), loc + ".segments")
     for segment in segments:
         obj(segment, loc)
-    require(
-        [s.get("id") for s in segments] == [s["id"] for s in target["segments"]],
-        loc,
-        "segment IDs/order differ",
-    )
+    if self_segmentation:
+        require(value.get("segmentation_source") == "self", loc, "segmentation_source must be self")
+        require("free_segmentation" not in value, loc, "self segmentation has no free_segmentation")
+        validate_self_segments(segments, target, loc)
+        frozen_segments = segments
+    else:
+        require(
+            [s.get("id") for s in segments] == [s["id"] for s in target["segments"]],
+            loc,
+            "segment IDs/order differ",
+        )
+        frozen_segments = target["segments"]
     known = {m["message_id"]: m for m in target["reply"]}
-    for segment, frozen in zip(segments, target["segments"], strict=True):
+    for segment, frozen in zip(segments, frozen_segments, strict=True):
         where = loc + "." + frozen["id"]
         require(segment.get("spans") == frozen["spans"], where, "frozen spans differ")
         status = segment.get("status")
@@ -208,9 +247,9 @@ def validate_s(value, target):
                 for action, sub in subtype.items():
                     require(
                         action in segment["actions"]
-                        and action in SUBTYPES
+                        and action in subtypes
                         and isinstance(sub, str)
-                        and sub in SUBTYPES[action],
+                        and sub in subtypes[action],
                         where,
                         "invalid subtype",
                     )
@@ -218,22 +257,42 @@ def validate_s(value, target):
                 require(
                     any(
                         a in segment["actions"] and isinstance(subtype, str) and subtype in opts
-                        for a, opts in SUBTYPES.items()
+                        for a, opts in subtypes.items()
                     ),
                     where,
                     "invalid subtype",
                 )
         modifiers = obj(segment.get("modifiers"), where + ".modifiers")
-        require(set(modifiers) == FEATURES, where, "all four modifier keys required")
-        for key, modifier in modifiers.items():
+        features = FEATURES_V12 if v12 else FEATURES
+        require(
+            set(modifiers) == features, where,
+            "all eight modifier keys required" if v12 else "all four modifier keys required",
+        )
+        fields = dict(modifiers)
+        if v12:
+            content = obj(segment.get("content_attributes"), where + ".content_attributes")
+            require(
+                "self_disclosure" in content, where, "missing content_attributes.self_disclosure"
+            )
+            fields["self_disclosure"] = content["self_disclosure"]
+        for key, modifier in fields.items():
             obj(modifier, where + "." + key)
             val = modifier.get("value")
-            require(val in ("present", "absent", "unclear"), where + "." + key, "select value")
-            if val == "present":
-                spans(modifier.get("evidence"), known, where + "." + key + ".evidence")
+            values = ("positive", "negative", "mixed", "absent", "unclear") if (
+                v12 and key == "evaluation"
+            ) else ("present", "absent", "unclear")
+            require(val in values, where + "." + key, "select value")
+            if val in ("present", "positive", "negative", "mixed"):
+                irony = v12 and key == "irony"
+                evidence_messages = {**{m["message_id"]: m for m in context}, **known} if (
+                    irony
+                ) else known
+                spans(modifier.get("evidence"), evidence_messages, where + "." + key + ".evidence")
+                if irony:
+                    string(modifier.get("reason"), where + ".irony.reason")
                 for evidence in modifier["evidence"]:
                     require(
-                        any(
+                        irony or any(
                             evidence["message_id"] == frozen_span["message_id"]
                             and frozen_span["start"]
                             <= evidence["start"]
@@ -252,7 +311,7 @@ def validate_s(value, target):
         obj(objection, loc)
         require(
             isinstance(objection.get("segment_id"), str)
-            and objection["segment_id"] in {s["id"] for s in target["segments"]},
+            and objection["segment_id"] in {s["id"] for s in frozen_segments},
             loc,
             "unknown objection segment",
         )
@@ -263,7 +322,7 @@ def validate_s(value, target):
         )
         require(objection.get("reason_code") == "boundary", loc, "boundary reason_code required")
         string(objection.get("proposal"), loc + ".proposal")
-    if target["segmentation_diagnosis"]:
+    if target.get("segmentation_diagnosis", False):
         boundaries = array(value.get("free_segmentation"), loc + ".free_segmentation")
         keys = []
         for boundary in boundaries:
@@ -304,7 +363,10 @@ def validate_export(data, packages):
     targets = {e["event_id"]: e for e in target["events"]}
     require(set(events) == set(targets), "packages", "stage event_id sets differ")
     obj(data, "export")
-    require(data.get("protocol_version") == PROTOCOL, "export", "wrong protocol_version")
+    require(
+        data.get("protocol_version") == initial["protocol_version"],
+        "export", "wrong protocol_version",
+    )
     for key in ("batch_id", "material_version"):
         require(data.get(key) == initial[key], "export", key + " differs")
     string(data.get("annotator_id"), "annotator_id")
@@ -338,6 +400,12 @@ def validate_export(data, packages):
             validate_f1(record.get("f_step1"), event, exposed)
             validate_f2(record.get("f_step2"), event)
             validate_g(record, event, exposed)
+        elif initial["stage"] == "g_only":
+            require(
+                all(key in record and record[key] is None for key in ("f_step1", "f_step2", "s")),
+                eid, "G-only F/S must be null",
+            )
+            validate_g(record, event, exposed)
         else:
             require(
                 all(
@@ -352,7 +420,11 @@ def validate_export(data, packages):
                 eid,
                 "S-only has no G judgments",
             )
-        validate_s(record.get("s"), targets[eid])
+        if initial["stage"] != "g_only":
+            validate_s(
+                record.get("s"), targets[eid], target.get("self_segmentation", False),
+                data["protocol_version"], event["context"] + event["partner"],
+            )
         for objection in array(record.get("unit_objections"), eid + ".unit_objections"):
             obj(objection, eid)
             require(

@@ -4,7 +4,7 @@
 
 ## CPED 试标入口
 
-**[首轮指南 v1.1](data/annotation_pilot.md)** 是 [Issue #3](https://github.com/Api-19/desktop-ai-companion-team/issues/3) 的现行规范（`rcpem-public-pilot-v1.1`）：12 个动作、四个独立互动特征、完整动作顺序，并附 F/G、上下文与信息单元规则。
+**[首轮指南 v1.2](data/annotation_pilot.md)** 是 [Issue #3](https://github.com/Api-19/desktop-ai-companion-team/issues/3) 的现行规范（`rcpem-public-pilot-v1.2`）：12 个动作、四个独立互动特征、完整动作顺序，并附 F/G、上下文与信息单元规则。
 
 现有 50 条材料草案继续使用，按指南校对后分为 10 条 S 校准、30 条 S 验证和 10 条封存目标回复的 F/G 批；其中 4 条先做独立切分诊断。具体规则已经确定用于试标，尚未获得人工一致性验证。
 

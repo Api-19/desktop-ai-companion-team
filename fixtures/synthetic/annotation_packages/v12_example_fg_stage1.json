@@ -1,0 +1,71 @@
+{
+  "package_format": "cped-annotation-package-v1",
+  "protocol_version": "rcpem-public-pilot-v1.2",
+  "material_version": "synthetic-training-v1.2",
+  "batch_id": "synthetic-training-batch",
+  "stage": "fg_stage1",
+  "events": [
+    {
+      "event_id": "synthetic-001",
+      "sample_role": "base",
+      "material_ref": "synthetic-example-manifest",
+      "context": [
+        {
+          "message_id": "c1",
+          "speaker_id": "speaker-b",
+          "text": "报告改到下周。"
+        }
+      ],
+      "partner": [
+        {
+          "message_id": "p1",
+          "speaker_id": "speaker-b",
+          "text": "准备了这么久却临时改期，我很烦。"
+        }
+      ],
+      "f_units": [
+        {
+          "id": "u1",
+          "spans": [
+            {
+              "message_id": "p1",
+              "start": 0,
+              "end": 11,
+              "text": "准备了这么久却临时改期"
+            }
+          ]
+        },
+        {
+          "id": "u2",
+          "spans": [
+            {
+              "message_id": "p1",
+              "start": 12,
+              "end": 15,
+              "text": "我很烦"
+            }
+          ]
+        }
+      ],
+      "g_candidates": [
+        {
+          "candidate_id": "candidate-1",
+          "c": [
+            {
+              "message_id": "h1",
+              "speaker_id": "speaker-b",
+              "text": "上次练了很久，演示还是临时取消了，我很烦。"
+            }
+          ],
+          "r": [
+            {
+              "message_id": "h2",
+              "speaker_id": "speaker-a",
+              "text": "准备这么久被取消，难怪会烦。"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

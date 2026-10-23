@@ -1,4 +1,4 @@
-"""Validate frozen, offline v1.1 annotation packages (Unicode code point offsets)."""
+"""Validate frozen, offline v1.1/v1.2 annotation packages (Unicode code point offsets)."""
 
 from __future__ import annotations
 
@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 
 PROTOCOL = "rcpem-public-pilot-v1.1"
+PROTOCOL_V12 = "rcpem-public-pilot-v1.2"
 FORMAT = "cped-annotation-package-v1"
 
 
@@ -75,11 +76,25 @@ def units(values, known, where):
 def validate_package(package):
     obj(package, "package")
     require(package.get("package_format") == FORMAT, "package", "wrong package_format")
-    require(package.get("protocol_version") == PROTOCOL, "package", "wrong protocol_version")
+    require(
+        package.get("protocol_version") in (PROTOCOL, PROTOCOL_V12),
+        "package", "wrong protocol_version",
+    )
     for key in ("material_version", "batch_id"):
         string(package.get(key), "package." + key)
     stage = package.get("stage")
-    require(stage in ("s_only", "fg_stage1", "fg_stage2"), "package", "invalid stage")
+    require(stage in ("s_only", "fg_stage1", "fg_stage2", "g_only"), "package", "invalid stage")
+    if "self_segmentation" in package:
+        require(
+            stage not in ("fg_stage1", "g_only"), "package",
+            "stage1/G-only must not contain self_segmentation",
+        )
+        require(
+            type(package["self_segmentation"]) is bool,
+            "package",
+            "self_segmentation must be boolean",
+        )
+    self_segmentation = package.get("self_segmentation", False)
     ids = []
     for event in array(package.get("events"), "events", nonempty=True):
         obj(event, "event")
@@ -91,14 +106,33 @@ def validate_package(package):
             string(event.get("material_ref"), eid + ".material_ref")
             for key in ("context", "partner"):
                 messages(event.get(key), eid + "." + key, known)
-        if stage == "fg_stage1":
+        if stage == "g_only":
+            require(
+                set(event) <= {"event_id", "sample_role", "material_ref", "context", "partner",
+                               "g_candidates", "permission"},
+                eid, "unexpected G-only event field",
+            )
+            permission = event.get("permission")
+            if permission is not None:
+                obj(permission, eid + ".permission")
+                require(
+                    set(permission) == {"nickname", "tease", "note"}, eid, "permission keys differ"
+                )
+                require(
+                    all(permission[k] in ("allowed", "forbidden", "unknown")
+                        for k in ("nickname", "tease"))
+                    and isinstance(permission["note"], str), eid, "invalid permission",
+                )
+        if stage in ("fg_stage1", "g_only"):
             require(
                 "reply" not in event and "segments" not in event,
                 eid,
                 "stage1 must not contain reply/segments",
             )
-            units(event.get("f_units"), known, eid + ".f_units")
-            candidates = array(event.get("g_candidates"), eid + ".g_candidates")
+            if stage == "fg_stage1":
+                units(event.get("f_units"), known, eid + ".f_units")
+            candidates = array(event.get("g_candidates"), eid + ".g_candidates",
+                               nonempty=stage == "g_only")
             candidate_ids = []
             for candidate in candidates:
                 obj(candidate, eid + ".candidate")
@@ -111,6 +145,16 @@ def validate_package(package):
             messages(event.get("reply"), eid + ".reply", known)
             require(bool(event["reply"]), eid, "reply must not be empty")
             reply = {m["message_id"]: m for m in event["reply"]}
+            if self_segmentation:
+                require(
+                    event.get("segments") == [], eid, "self segmentation requires empty segments"
+                )
+                require(
+                    event.get("segmentation_diagnosis", False) is False,
+                    eid,
+                    "self segmentation forbids segmentation_diagnosis",
+                )
+                continue
             require(
                 type(event.get("segmentation_diagnosis")) is bool,
                 eid,

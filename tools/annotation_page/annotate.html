@@ -4,18 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'none'; img-src data:; base-uri 'none'; form-action 'none'">
-<title>v1.1 离线标注页</title>
+<title>v1.1 / v1.2 离线标注页</title>
 <style>
 :root{font:16px/1.65 system-ui,sans-serif;color:#1c2b33;background:#f2f5f6;accent-color:#12646c}body{margin:0}main{max-width:1100px;margin:auto;padding:24px}h1{font-size:1.7rem}h2{font-size:1.3rem}h3{font-size:1.1rem}section,.card{background:white;border:1px solid #ccd8dc;border-radius:10px;padding:18px;margin:16px 0}fieldset{border:1px solid #ccd8dc;border-radius:6px;margin:12px 0;padding:12px}legend{font-weight:650}label{display:inline-block;margin:4px 14px 4px 0}input,select,textarea,button{font:inherit}input[type=text],textarea{max-width:95%;padding:7px;border:1px solid #9eaeb4;border-radius:4px}textarea{display:block;width:95%;min-height:60px}button{padding:7px 14px;margin:5px 8px 5px 0;border:1px solid #12646c;border-radius:5px;background:#edf8f7;color:#114e55;cursor:pointer}button:disabled{opacity:.5;cursor:default}input[type=file]{max-width:100%}.muted{color:#53656e;font-size:.9rem}.error{color:#9a2828;white-space:pre-wrap}.success{color:#175a44}.msg{white-space:pre-wrap;overflow-wrap:anywhere;border-left:3px solid #b6d8da;padding:8px 12px;margin:8px 0;background:#f4f9fa}.actions label{display:block}.feature{border-top:1px solid #dae2e5;padding-top:10px;margin-top:12px}.evidence-text{white-space:pre-wrap;user-select:text;background:#fff4d6;padding:12px;margin:8px 0}.boundary-text{white-space:pre-wrap;line-height:3}.boundary{padding:0 3px;margin:0 1px;border:1px dotted #8c9da2;background:white;color:#456}.boundary.on{background:#12646c;color:white}.toolbar{position:sticky;top:0;background:#f2f5f6ef;padding:8px 0;z-index:2}.tag{background:#e3eff0;padding:2px 8px;border-radius:4px}.listitem{border-bottom:1px solid #e3eaed;padding:6px 0}.definition{font-weight:400;color:#40565f}details{margin:10px 0}summary{cursor:pointer}small{display:block}button.danger{color:#9a2828;border-color:#9a2828}@media(max-width:650px){main{padding:12px}section,.card{padding:12px}}
 </style>
 </head>
 <body><main>
-<h1>F / S / G 离线标注 · v1.1</h1>
+<h1>F / S / G 离线标注 · v1.1 / v1.2</h1>
 <p>依据可见文字独立判断；不确定时记录原因。全部文件在本机处理。请先阅读同版试标指南。</p>
 <section id="start"><h2>开始 / 恢复本批</h2>
 <label>匿名标注者 ID <input id="annotator" type="text" autocomplete="off" placeholder="例如 member-a"></label>
 <label>阶段 <select id="phase"><option value="training">training 练习</option><option value="pilot">pilot 试标</option></select></label>
 <p><label>加载初始任务包（S-only 或 F/G stage1） <input id="package-file" type="file" accept=".json,application/json"></label></p>
+<button id="clear-draft" type="button" disabled>清除本机草稿</button>
 <p class="muted">使用相同匿名 ID、批次及材料版本加载同一个包，可恢复本浏览器草稿。F/G stage2 须等全批 F1、G 锁定后单独加载。不要把教学样例当作盲标包。</p>
 </section>
 <div id="notice" role="status" aria-live="polite"></div>
@@ -32,6 +33,7 @@
 'use strict';
 const AnnotationCore = (() => {
   const PROTOCOL = 'rcpem-public-pilot-v1.1';
+  const PROTOCOL_V12 = 'rcpem-public-pilot-v1.2';
   const ACTIONS = {
     ACK:'接收/理解反馈：表示听见、收到、理解，不额外回答事实或作出行动承诺',
     INFORM:'回答/告知/解释：给出事实、经历、状态或原因，也含纠正事实',
@@ -52,6 +54,21 @@ const AnnotationCore = (() => {
     seek_care:'明确索取陪伴、关注或安慰',
     self_disclosure:'提供说话者自己的经历、状态、感受或偏好'
   };
+  const FEATURES_V12 = {
+    "mitigation": "用“可能、大概、我觉得、要不、好像”等降低断言确定性或要求力度，能指出被缓和的断言或要求",
+    "politeness": "可明确识别的敬让、致歉、感谢或减轻强迫感的表达，如“麻烦你”“谢谢”“不好意思”",
+    "emotion": "措辞明显传达说话者自身的喜、怒、悲、惧、担忧等，只标外显表达",
+    "evaluation": "对人、行为或事物明确褒贬；positive=褒，negative=贬，mixed=同片段兼有两者",
+    "rapport": "用昵称、“咱们”、友好称谓或逗趣称呼主动拉近距离，适用于任何关系",
+    "humor": "有可辨识的玩笑、双关、荒诞或预期反转，并能指出玩笑构造",
+    "irony": "字面立场与可见语境支持的实际立场明显相反",
+    "intensification": "明显强化、极端化或不按字面理解的夸张，能定位强化的措辞与对象"
+  };
+  const CONTENT_V12 = {self_disclosure:'提供说话者自己的经历、状态、感受或偏好，包括明确的接受界限'};
+  const featuresFor = protocol => protocol===PROTOCOL_V12?FEATURES_V12:FEATURES;
+  const subtypesFor = protocol => protocol===PROTOCOL_V12?{...SUBTYPES,REQUEST:['seek_care']}:SUBTYPES;
+  const isPresent = value => ['present','positive','negative','mixed'].includes(value);
+  const valuesFor = (protocol,key) => protocol===PROTOCOL_V12&&key==='evaluation'?['positive','negative','mixed','absent','unclear']:['present','absent','unclear'];
   const REASONS = {context_missing:'上下文不足', ambiguous_intent:'意图歧义',
     joke_or_serious:'玩笑或认真不明', multi_function:'不可分的多功能', boundary:'切分边界', other:'其他'};
   const SUBTYPES = {COMMIT:['promise','offer'], SOCIAL:['greet','thank','apologize','close','topic_shift','other']};
@@ -69,9 +86,10 @@ const AnnotationCore = (() => {
   const allIDs = e => e.context.concat(e.partner).map(m=>m.message_id);
   function assert(ok, message) { if (!ok) throw Error(message); }
   function validatePackage(p) {
-    assert(p && p.package_format === 'cped-annotation-package-v1' && p.protocol_version === PROTOCOL,'任务包格式或协议版本错误');
+    assert(p && p.package_format === 'cped-annotation-package-v1' && [PROTOCOL,PROTOCOL_V12].includes(p.protocol_version),'任务包格式或协议版本错误');
     assert(text(p.material_version) && text(p.batch_id),'缺材料版本或批次 ID');
-    assert(['s_only','fg_stage1','fg_stage2'].includes(p.stage),'未知 stage');
+    assert(['s_only','fg_stage1','fg_stage2','g_only'].includes(p.stage),'未知 stage');
+    if (has(p,'self_segmentation')) assert(!['fg_stage1','g_only'].includes(p.stage) && typeof p.self_segmentation==='boolean','self_segmentation 只允许在 S-only/stage2 中为布尔值');
     assert(Array.isArray(p.events) && p.events.length,'任务包没有事件');
     const eids = new Set();
     for (const e of p.events) {
@@ -100,16 +118,31 @@ const AnnotationCore = (() => {
         assert(['base','supplement'].includes(e.sample_role) && text(e.material_ref),'缺事件来源或 sample_role');
         messages(e.context); messages(e.partner);
       }
-      if (p.stage === 'fg_stage1') {
+      if (p.stage === 'g_only') {
+        assert(Object.keys(e).every(k=>['event_id','sample_role','material_ref','context','partner','g_candidates','permission'].includes(k)),'G-only 事件包含多余字段');
+        if (e.permission!==undefined && e.permission!==null) {
+          const permission=e.permission;
+          assert(typeof permission==='object' && same(Object.keys(permission).sort(),['nickname','note','tease']) &&
+            ['nickname','tease'].every(k=>['allowed','forbidden','unknown'].includes(permission[k])) && typeof permission.note==='string','permission 格式错误');
+        }
+        assert(e.g_candidates?.length,'G-only 至少需要一个候选');
+      }
+      if (['fg_stage1','g_only'].includes(p.stage)) {
         assert(!has(e,'reply') && !has(e,'segments'),'stage1 不能含 reply/segments');
-        units(e.f_units,known);
+        if (p.stage==='fg_stage1') units(e.f_units,known);
         assert(Array.isArray(e.g_candidates),'缺 g_candidates'); const ids = new Set();
         for (const c of e.g_candidates) {
           assert(text(c.candidate_id) && !ids.has(c.candidate_id),'候选 ID 缺失或重复'); ids.add(c.candidate_id);
           assert(c.c?.length && c.r?.length,'候选缺 c/r'); messages(c.c); messages(c.r);
         }
       } else {
-        messages(e.reply); assert(e.reply.length && typeof e.segmentation_diagnosis === 'boolean','缺回复或诊断标记');
+        messages(e.reply); assert(e.reply.length,'缺回复');
+        if (p.self_segmentation) {
+          assert(Array.isArray(e.segments) && !e.segments.length,'自己切分包必须提供空 segments');
+          assert(!has(e,'segmentation_diagnosis') || e.segmentation_diagnosis===false,'自己切分不能启用切分诊断');
+          continue;
+        }
+        assert(typeof e.segmentation_diagnosis === 'boolean','缺诊断标记');
         units(e.segments,new Map(e.reply.map(m=>[m.message_id,m])));
         const actual = e.segments.flatMap(u=>u.spans.flatMap(s=>Array.from({length:s.end-s.start},(_,i)=>[s.message_id,s.start+i])));
         const expected = e.reply.flatMap(m=>Array.from(m.text,(_,i)=>[m.message_id,i]));
@@ -118,24 +151,64 @@ const AnnotationCore = (() => {
     }
     return p;
   }
-  function blankS(e) {
+  function blankS(e,protocol=PROTOCOL) {
     return {segments:e.segments.map(s=>({...clone(s),status:null,actions:[],candidates:[],subtype:null,
-      modifiers:Object.fromEntries(Object.keys(FEATURES).map(k=>[k,{value:null}]))})),segment_objections:[]};
+      modifiers:Object.fromEntries(Object.keys(featuresFor(protocol)).map(k=>[k,{value:null}])),
+      ...(protocol===PROTOCOL_V12?{content_attributes:{self_disclosure:{value:null}}}:{})})),segment_objections:[]};
+  }
+  function segmentsFromBoundaries(e,boundaries) {
+    const segments=[];
+    for (const m of e.reply) {
+      const chars=Array.from(m.text), points=[0,...boundaries.filter(b=>b.message_id===m.message_id).map(b=>b.position).sort((a,b)=>a-b),chars.length];
+      for (let i=1;i<points.length;i++) {
+        let start=points[i-1],end=points[i];
+        while(start<end && !chars[start].trim()) start++;
+        while(end>start && !chars[end-1].trim()) end--;
+        if(start<end) segments.push({id:'s'+(segments.length+1),spans:[{message_id:m.message_id,start,end,text:chars.slice(start,end).join('')}]});
+      }
+    }
+    return segments;
+  }
+  function lockSelfSegmentation(record,e,boundaries,protocol=PROTOCOL) {
+    record.s={...blankS({segments:segmentsFromBoundaries(e,boundaries)},protocol),segmentation_source:'self'};
+    delete record._freeDraft;
+  }
+  function resetSelfSegmentation(record,e,protocol=PROTOCOL) {
+    record.s=blankS(e,protocol);
+    delete record._freeDraft;
+  }
+  function selfSegmentationErrors(s,e) {
+    if (!s || s.segmentation_source!=='self') return ['请先确定切分'];
+    if (has(s,'free_segmentation')) return ['自己切分不能保存 free_segmentation'];
+    if (!Array.isArray(s.segments)) return ['缺片段数组'];
+    const messages=new Map(e.reply.map((m,i)=>[m.message_id,{...m,order:i}])),covered=new Set();
+    let lastOrder=-1,lastEnd=0;
+    for (const [i,seg] of s.segments.entries()) {
+      if (!seg || seg.id!=='s'+(i+1) || !Array.isArray(seg.spans) || seg.spans.length!==1) return ['自己切分须依次编号，每片段只含一条消息内的一个 span'];
+      const sp=seg.spans[0],m=sp && messages.get(sp.message_id);
+      if (!m || !Number.isInteger(sp.start) || !Number.isInteger(sp.end) || sp.start<0 || sp.start>=sp.end || sp.end>Array.from(m.text).length || sp.text!==slice(m.text,sp.start,sp.end) || !text(sp.text)) return ['片段与原文码点切片不符'];
+      if (m.order<lastOrder || (m.order===lastOrder && sp.start<lastEnd)) return ['片段顺序错误或重叠'];
+      for(let j=sp.start;j<sp.end;j++) covered.add(m.order+':'+j);
+      lastOrder=m.order;lastEnd=sp.end;
+    }
+    for(const m of messages.values()) for(const [i,ch] of Array.from(m.text).entries())
+      if(ch.trim() && !covered.has(m.order+':'+i)) return ['片段未覆盖回复的全部非空白字符'];
+    return [];
   }
   function createState(pkg,annotator_id,phase) {
     validatePackage(pkg); assert(pkg.stage !== 'fg_stage2','请先加载初始包');
     const state = {package:clone(pkg),stage2:null,annotator_id,phase,
       batch_declaration:{reply_seen:null,review_comments_read:null},event_exposure_exceptions:[],records:{}};
     for (const e of pkg.events) {
-      const fg = pkg.stage === 'fg_stage1';
+      const fg = pkg.stage === 'fg_stage1', g = fg || pkg.stage === 'g_only';
       state.records[e.event_id] = {event_id:e.event_id,material_ref:e.material_ref,sample_role:e.sample_role,
         f_step1:fg?{locked:false,reply_seen_before_step1:false,status:null,acceptable:[],preferred:null,mode:null,reason:''}:null,
-        f_step2:null,g_status:fg?(e.g_candidates.length?'annotated':'not_applicable'):null,
-        g_reply_seen_before_judgment:false,g_pairs:fg?e.g_candidates.map(c=>({candidate_id:c.candidate_id,
+        f_step2:null,g_status:g?(e.g_candidates.length?'annotated':'not_applicable'):null,
+        g_reply_seen_before_judgment:false,g_pairs:g?e.g_candidates.map(c=>({candidate_id:c.candidate_id,
           c_message_ids:c.c.map(m=>m.message_id),r_message_ids:c.r.map(m=>m.message_id),x_message_ids:allIDs(e),
           label:null,reason:'',evidence:[]})):[],
         ...(fg&&!e.g_candidates.length?{g_reason:''}:{}),
-        s:fg?null:blankS(e),unit_objections:[],_gLocked:false};
+        s:g?null:blankS(e,pkg.protocol_version),unit_objections:[],_gLocked:false};
     }
     return state;
   }
@@ -145,7 +218,7 @@ const AnnotationCore = (() => {
   function applyExposure(state) {
     for (const r of Object.values(state.records)) {
       if (r.f_step1) r.f_step1.reply_seen_before_step1=exposure(state,r.event_id);
-      r.g_reply_seen_before_judgment=!!r.f_step1 && exposure(state,r.event_id);
+      r.g_reply_seen_before_judgment=r.g_status!==null && exposure(state,r.event_id);
     }
   }
   function f1Errors(r,e,requireLock=true) {
@@ -190,7 +263,10 @@ const AnnotationCore = (() => {
     assert(same(pkg.events.map(e=>e.event_id).sort(),state.package.events.map(e=>e.event_id).sort()),'两个阶段 event_id 集合不匹配');
     for (const e of pkg.events) {
       const r=state.records[e.event_id];
-      if (!r.s) r.s=blankS(e);
+      if (!r.s) r.s=blankS(e,pkg.protocol_version);
+      else if (pkg.self_segmentation) {
+        if (r.s.segments.length || has(r.s,'segmentation_source')) assert(!selfSegmentationErrors(r.s,e).length,'导入的自己切分与 stage2 回复不符');
+      }
       else assert(same(r.s.segments.map(s=>({id:s.id,spans:s.spans})),e.segments),'导入结果与 stage2 冻结片段不同');
       if (!r.f_step2) r.f_step2={status:null,mode:null,responded_groups:[],reason:''};
     }
@@ -208,10 +284,14 @@ const AnnotationCore = (() => {
     if (f.status==='judged'?!f.responded_groups.length:!!f.responded_groups.length) add('judged 须有分组；无匹配/不足须空分组');
     return out;
   }
-  function sErrors(r,e) {
+  function sErrors(r,e,selfSegmentation=false,protocol=PROTOCOL,context=[]) {
+    const features=featuresFor(protocol), subtypes=subtypesFor(protocol), v12=protocol===PROTOCOL_V12;
     const out=[], add=s=>out.push(e.event_id+' · '+s), s=r.s;
     if (!s || !Array.isArray(s.segments)) return [e.event_id+' · 缺 S'];
-    if (!same(s.segments.map(u=>({id:u.id,spans:u.spans})),e.segments)) add('冻结片段 ID 或 spans 不符');
+    if (selfSegmentation) {
+      const errors=selfSegmentationErrors(s,e);
+      if(errors.length) return errors.map(error=>e.event_id+' · '+error);
+    } else if (!same(s.segments.map(u=>({id:u.id,spans:u.spans})),e.segments)) add('冻结片段 ID 或 spans 不符');
     const messages=new Map(e.reply.map(m=>[m.message_id,m]));
     if (e.segmentation_diagnosis) {
       if (!Array.isArray(s.free_segmentation)) return [e.event_id+' · 请先提交独立切分'];
@@ -235,26 +315,32 @@ const AnnotationCore = (() => {
       if ((a.includes('OTHER')||c.includes('OTHER'))&&!text(seg.reason)) add(prefix+'OTHER 必须描述功能');
       if (!has(seg,'subtype')) add(prefix+'缺 subtype');
       if (seg.subtype!==null) {
-        const entries=typeof seg.subtype==='object'?Object.entries(seg.subtype):a.filter(k=>has(SUBTYPES,k)).map(k=>[k,seg.subtype]);
-        if (!entries.length||entries.some(([k,v])=>!a.includes(k)||!SUBTYPES[k]?.includes(v))) add(prefix+'subtype 无效');
+        const entries=typeof seg.subtype==='object'?Object.entries(seg.subtype):a.filter(k=>has(subtypes,k)).map(k=>[k,seg.subtype]);
+        if (!entries.length||entries.some(([k,v])=>!a.includes(k)||!subtypes[k]?.includes(v))) add(prefix+'subtype 无效');
       }
-      if (!seg.modifiers||!same(Object.keys(seg.modifiers).sort(),Object.keys(FEATURES).sort())) {add(prefix+'四特征键不全');continue;}
-      for (const k of Object.keys(FEATURES)) {
-        const m=seg.modifiers[k];
-        if (!m||!['present','absent','unclear'].includes(m.value)) {add(prefix+k+' 请选择');continue;}
+      if (!seg.modifiers||!same(Object.keys(seg.modifiers).sort(),Object.keys(features).sort())) {add(prefix+(v12?'八特征键不全':'四特征键不全'));continue;}
+      const fields={...seg.modifiers};
+      if(v12) {
+        if(!seg.content_attributes||!has(seg.content_attributes,'self_disclosure')) add(prefix+'缺 content_attributes.self_disclosure');
+        else fields.self_disclosure=seg.content_attributes.self_disclosure;
+      }
+      for (const [k,m] of Object.entries(fields)) {
+        if (!m||!valuesFor(protocol,k).includes(m.value)) {add(prefix+k+' 请选择');continue;}
         if (m.value==='unclear'&&!text(m.reason)) add(prefix+k+' 请填短原因');
         if (m.value==='absent'&&!same(Object.keys(m),['value'])) add(prefix+k+' absent 只保存 value');
-        if (m.value==='present') {
+        if (isPresent(m.value)) {
+          const irony=v12&&k==='irony';
+          if(irony&&!text(m.reason))add(prefix+'irony 请说明相反立场');
           if (!Array.isArray(m.evidence)||!m.evidence.length) add(prefix+k+' 请拖选证据');
           else for (const ev of m.evidence) {
-            const raw=messages.get(ev.message_id)?.text;
-            if (!raw||!Number.isInteger(ev.start)||!Number.isInteger(ev.end)||ev.start>=ev.end||ev.text!==slice(raw,ev.start,ev.end)||!seg.spans.some(sp=>sp.message_id===ev.message_id&&sp.start<=ev.start&&ev.end<=sp.end)) add(prefix+k+' 证据位置无效');
+            const raw=(messages.get(ev.message_id)||(irony?context.find(m=>m.message_id===ev.message_id):null))?.text;
+            if (!raw||!Number.isInteger(ev.start)||!Number.isInteger(ev.end)||ev.start<0||ev.start>=ev.end||ev.end>Array.from(raw||'').length||ev.text!==slice(raw,ev.start,ev.end)||(!irony&&!seg.spans.some(sp=>sp.message_id===ev.message_id&&sp.start<=ev.start&&ev.end<=sp.end))) add(prefix+k+' 证据位置无效');
           }
         }
       }
     }
     if (!Array.isArray(s.segment_objections)) add('缺边界异议列表');
-    else for (const o of s.segment_objections) if (!e.segments.some(seg=>seg.id===o.segment_id)||!['should_split','should_merge','wrong_boundary'].includes(o.problem)||o.reason_code!=='boundary'||!text(o.proposal)) add('请补齐边界异议');
+    else for (const o of s.segment_objections) if (!s.segments.some(seg=>seg.id===o.segment_id)||!['should_split','should_merge','wrong_boundary'].includes(o.problem)||o.reason_code!=='boundary'||!text(o.proposal)) add('请补齐边界异议');
     return out;
   }
   function completion(state) {
@@ -272,6 +358,12 @@ const AnnotationCore = (() => {
       const r=state.records[e.event_id];
       if (!r) {out.push(e.event_id+' · 缺记录');continue;}
       if (r.material_ref!==e.material_ref||r.sample_role!==e.sample_role) out.push(e.event_id+' · 事件元数据不符');
+      if (state.package.stage==='g_only') {
+        out.push(...gErrors(r,e));
+        if (r.f_step1!==null||r.f_step2!==null||r.s!==null||!same(r.unit_objections,[])) out.push(e.event_id+' · G-only 的 F/S 必须为空');
+        if (r.g_reply_seen_before_judgment!==exposure(state,e.event_id)) out.push(e.event_id+' · G 暴露标记不符');
+        continue;
+      }
       if (state.package.stage==='fg_stage1') {
         out.push(...f1Errors(r,e),...gErrors(r,e));
         if (r.f_step1?.reply_seen_before_step1!==exposure(state,e.event_id)||r.g_reply_seen_before_judgment!==exposure(state,e.event_id)) out.push(e.event_id+' · F1/G 暴露标记不符');
@@ -279,7 +371,7 @@ const AnnotationCore = (() => {
         out.push(...f2Errors(r,e));
       } else if (r.f_step1!==null||r.f_step2!==null||r.g_status!==null||!Array.isArray(r.g_pairs)||r.g_pairs.length||r.g_reply_seen_before_judgment!==false) out.push(e.event_id+' · S-only 的 F/G 必须为空');
       const target=(state.stage2||state.package).events.find(t=>t.event_id===e.event_id);
-      out.push(...sErrors(r,target));
+      out.push(...sErrors(r,target,!!(state.stage2||state.package).self_segmentation,state.package.protocol_version,e.context.concat(e.partner)));
       if (!Array.isArray(r.unit_objections)) out.push(e.event_id+' · 缺单元异议列表');
       else for (const o of r.unit_objections) if (!e.f_units?.some(u=>u.id===o.unit_id)||!text(o.problem)||!text(o.proposal)) out.push(e.event_id+' · 请补齐单元异议');
     }
@@ -292,10 +384,10 @@ const AnnotationCore = (() => {
       for (const key of ['event_id','material_ref','sample_role','f_step1','f_step2','g_status','g_reply_seen_before_judgment','g_pairs','s','unit_objections']) r[key]=clone(source[key]);
       if (has(source,'g_reason')) r.g_reason=source.g_reason;
       if (r.f_step1) r.f_step1.reply_seen_before_step1=exposure(state,e.event_id);
-      r.g_reply_seen_before_judgment=!!r.f_step1&&exposure(state,e.event_id);
+      r.g_reply_seen_before_judgment=r.g_status!==null&&exposure(state,e.event_id);
       return r;
     });
-    return {protocol_version:PROTOCOL,material_version:state.package.material_version,annotator_id:state.annotator_id,
+    return {protocol_version:state.package.protocol_version,material_version:state.package.material_version,annotator_id:state.annotator_id,
       phase:state.phase,batch_id:state.package.batch_id,batch_declaration:clone(state.batch_declaration),
       event_exposure_exceptions:clone(state.event_exposure_exceptions),records};
   }
@@ -314,14 +406,15 @@ const AnnotationCore = (() => {
       }
       if (old._gLocked) assert(same(old.g_pairs,r.g_pairs)&&old.g_status===r.g_status&&old.g_reason===r.g_reason,r.event_id+' 的 G 已锁定，不能用导入改写');
       if (old.s && has(old.s,'free_segmentation')) assert(same(old.s.free_segmentation,r.s?.free_segmentation),r.event_id+' 的独立切分已锁定，不能用导入改写');
+      if (old.s?.segmentation_source==='self') assert(r.s?.segmentation_source==='self' && same(old.s.segments.map(s=>({id:s.id,spans:s.spans})),r.s.segments.map(s=>({id:s.id,spans:s.spans}))),r.event_id+' 的切分已锁定，请先确认重新切分再导入');
       next.records[r.event_id]={...clone(r),_gLocked:true};
     }
     // Stage1 resume can import F1/G first. S remains hidden until matching stage2 is loaded.
     const errors=completion(next).filter(s=>!(!next.stage2 && next.package.stage==='fg_stage1' && s.endsWith('尚未加载 stage2')));
     assert(!errors.length,errors.join('\n')); applyExposure(next); return next;
   }
-  return {ACTIONS,FEATURES,REASONS,SUBTYPES,clone,has,same,codePointOffset,slice,validatePackage,
-    createState,blankS,f1Errors,gErrors,f2Errors,sErrors,readyForStage2,attachStage2,completion,buildExport,
+  return {ACTIONS,FEATURES,FEATURES_V12,CONTENT_V12,featuresFor,subtypesFor,isPresent,valuesFor,REASONS,SUBTYPES,clone,has,same,codePointOffset,slice,validatePackage,
+    createState,blankS,segmentsFromBoundaries,lockSelfSegmentation,resetSelfSegmentation,f1Errors,gErrors,f2Errors,sErrors,readyForStage2,attachStage2,completion,buildExport,
     exposure,applyExposure,importExport};
 })();
 </script>
@@ -350,7 +443,14 @@ function checklist(parent,title,options,values,onchange,disabled=false) {
   const field=el('fieldset');field.append(el('legend',title));
   for(const [key,label] of options) {const lab=el('label'),input=el('input');input.type='checkbox';input.checked=values.includes(key);input.disabled=disabled;input.onchange=()=>guard(()=>onchange(input.checked?values.concat(key):values.filter(x=>x!==key)));lab.append(input,document.createTextNode(' '+label));field.append(lab);}parent.append(field);return field;
 }
-function storageKey(s) {return 'annotation-v1.1:'+JSON.stringify([s.annotator_id,s.package.batch_id,s.package.material_version]);}
+function storageKey(s) {return 'annotation-'+s.package.protocol_version.replace('rcpem-public-pilot-','')+':'+JSON.stringify([s.annotator_id,s.package.batch_id,s.package.material_version]);}
+function clearDraft() {
+  if(!confirm('确认清除当前批次的本机草稿？请先导出备份。'))return;
+  localStorage.removeItem(storageKey(state));
+  $('save-status').textContent='本机草稿已清除';
+  notice('本机草稿已清除');
+}
+$('clear-draft').onclick=()=>guard(clearDraft);
 function save() {
   C.applyExposure(state);
   try {localStorage.setItem(storageKey(state),JSON.stringify(state));$('save-status').className='muted';$('save-status').textContent='已自动保存到本机浏览器 · '+new Date().toLocaleTimeString();}
@@ -371,8 +471,9 @@ function renderDeclarations() {
     radio(parent,title,[[true,'是'],[false,'否']],state.batch_declaration[key],v=>{state.batch_declaration[key]=v;save();});
 }
 function render() {
+  $('clear-draft').disabled=false;
   $('workspace').hidden=false;$('annotator').disabled=true;$('phase').disabled=true;
-  $('batch-title').textContent=state.package.batch_id+' · '+state.package.material_version+' · '+state.annotator_id+' / '+state.phase;
+  $('batch-title').textContent=state.package.protocol_version+' · '+state.package.batch_id+' · '+state.package.material_version+' · '+state.annotator_id+' / '+state.phase;
   renderDeclarations();const nav=$('event-select');nav.replaceChildren();
   state.package.events.forEach((e,i)=>nav.append(new Option((i+1)+' / '+state.package.events.length+' · '+e.event_id,String(i))));nav.value=String(current);
   renderEvent();updateProgress();
@@ -420,8 +521,12 @@ function renderF1(parent,event,record) {
 }
 function renderG(parent,event,record) {
   const box=el('section');box.append(el('h2',record._gLocked?'G 已锁定':'G · 历史回应的前提在当前语境是否成立'));
-  if(!record.f_step1.locked){box.append(el('p','请先完成并锁定 F1。'));parent.append(box);return;}
+  if(record.f_step1 && !record.f_step1.locked){box.append(el('p','请先完成并锁定 F1。'));parent.append(box);return;}
   box.append(el('p','只看历史 c/r 与当前 x，依据状态、需求、所指人和旧事实/承诺判断。话题不同本身不算冲突。','muted'));
+  if(event.permission) {
+    const names={allowed:'允许',forbidden:'禁止',unknown:'未知'}, p=event.permission;
+    box.append(el('p','称呼：'+names[p.nickname]+' / 调侃：'+names[p.tease]+' / 备注：'+p.note,'muted'));
+  }
   if(!event.g_candidates.length)inputText(box,'本事件没有候选，说明原因（必填）',record.g_reason,v=>{record.g_reason=v;save();},record._gLocked);
   for(const [i,c] of event.g_candidates.entries()) {
     const field=el('fieldset'),pair=record.g_pairs[i];field.append(el('legend',c.candidate_id));messages(field,'历史对方话 c',c.c);messages(field,'历史回复 r',c.r);
@@ -453,9 +558,9 @@ function renderF2(parent,event,record) {
   }
   inputText(box,'理由（可选；无法定位整体承接时说明）',f.reason,v=>{f.reason=v;save();});parent.append(box);
 }
-function renderDiagnosis(parent,target,record) {
-  const box=el('section');box.append(el('h2','独立切分诊断 · 先不看预切'));
-  box.append(el('p','在字符之间的“·”上点击放置或取消边界。消息两端是天然边界，不用标。可以不设内部边界。提交后锁定，再显示冻结片段。'));
+function renderDiagnosis(parent,target,record,selfSegmentation=false) {
+  const box=el('section');box.append(el('h2',selfSegmentation?'自己切分 · 回复原文':'独立切分诊断 · 先不看预切'));
+  box.append(el('p','在字符之间的“·”上点击放置或取消边界。消息两端是天然边界，不用标。可以不设内部边界。'+(selfSegmentation?'确定后按这些片段标动作和特征。':'提交后锁定，再显示冻结片段。')));
   if(!record._freeDraft)record._freeDraft=[];
   for(const m of target.reply) {
     box.append(el('h3',m.message_id+' · '+m.speaker_id));const row=el('div',undefined,'boundary-text');
@@ -466,7 +571,11 @@ function renderDiagnosis(parent,target,record) {
       b.className='boundary'+(on?' on':'');b.setAttribute('aria-pressed',String(on));b.setAttribute('aria-label',m.message_id+' 第 '+position+' 个码点后'+(on?'取消':'放置')+'边界');
     }});box.append(row);
   }
-  button('提交切分（锁定并查看预切）',()=>{const ids=target.reply.map(m=>m.message_id);record.s.free_segmentation=C.clone(record._freeDraft).sort((a,b)=>ids.indexOf(a.message_id)-ids.indexOf(b.message_id)||a.position-b.position);delete record._freeDraft;save();renderEvent();},box);parent.append(box);
+  button(selfSegmentation?'确定切分':'提交切分（锁定并查看预切）',()=>{
+    if(selfSegmentation) C.lockSelfSegmentation(record,target,record._freeDraft,state.package.protocol_version);
+    else {const ids=target.reply.map(m=>m.message_id);record.s.free_segmentation=C.clone(record._freeDraft).sort((a,b)=>ids.indexOf(a.message_id)-ids.indexOf(b.message_id)||a.position-b.position);delete record._freeDraft;}
+    save();renderEvent();
+  },box);parent.append(box);
 }
 function addSelection(textNode,span,modifier) {
   const selection=window.getSelection();
@@ -481,15 +590,26 @@ function addSelection(textNode,span,modifier) {
   if(!modifier.evidence.some(ev=>C.same(ev,evidence)))modifier.evidence.push(evidence);
   selection.removeAllRanges();save();renderEvent();
 }
-function renderModifier(parent,segment,key) {
-  const m=segment.modifiers[key],box=el('div',undefined,'feature');box.append(el('strong',key+' · '+C.FEATURES[key]));
-  radio(box,'特征状态',[['present','present 有'],['absent','absent 无'],['unclear','unclear 无法确定']],m.value,v=>{
-    segment.modifiers[key]={value:v,...(v==='present'?{evidence:[]}:v==='unclear'?{reason:''}:{})};save();renderEvent();
+function renderModifier(parent,segment,key,content=false) {
+  const protocol=state.package.protocol_version, fields=content?segment.content_attributes:segment.modifiers;
+  const definitions=content?C.CONTENT_V12:C.featuresFor(protocol);
+  const m=fields[key],box=el('div',undefined,'feature');
+  box.append(el('strong',key+(protocol==='rcpem-public-pilot-v1.2'&&key==='intensification'?'【候选】':'')+' · '+definitions[key]));
+  const labels={present:'present 有',absent:'absent 无',unclear:'unclear 无法确定',positive:'positive 褒',negative:'negative 贬',mixed:'mixed 褒贬兼有'};
+  radio(box,'特征状态',C.valuesFor(protocol,key).map(v=>[v,labels[v]]),m.value,v=>{
+    fields[key]={value:v,...(C.isPresent(v)?{evidence:[]}:v==='unclear'?{reason:''}:{})};save();renderEvent();
   });
   if(m.value==='unclear')inputText(box,'短原因（必填）',m.reason,v=>{m.reason=v;save();});
-  if(m.value==='present') {
+  if(C.isPresent(m.value)) {
+    if(key==='irony'&&protocol==='rcpem-public-pilot-v1.2') inputText(box,'相反立场说明（必填）',m.reason,v=>{m.reason=v;save();});
     box.append(el('p','拖选下面的原文，再按“添加这段证据”；可分别添加多段。','muted'));
-    for(const span of segment.spans) {
+    let evidenceSpans=segment.spans;
+    if(key==='irony'&&protocol==='rcpem-public-pilot-v1.2') {
+      const event=state.package.events[current],target=(state.stage2||state.package).events.find(e=>e.event_id===event.event_id);
+      evidenceSpans=event.context.concat(event.partner,target.reply).map(m=>({message_id:m.message_id,start:0,end:Array.from(m.text).length,text:m.text}));
+      box.append(el('p','同时定位字面表达与可见反向语境依据。','muted'));
+    }
+    for(const span of evidenceSpans) {
       const row=el('div'),raw=el('div',span.text,'evidence-text');row.append(el('small',span.message_id),raw);
       const add=button('添加这段证据',()=>addSelection(raw,span,m),row);add.onmousedown=e=>e.preventDefault();box.append(row);
     }
@@ -516,15 +636,17 @@ function renderSegment(parent,segment,record) {
     select(box,'原因代码（必须手选）',Object.entries(C.REASONS),segment.reason_code,v=>{if(v)segment.reason_code=v;else delete segment.reason_code;save();});
     inputText(box,segment.actions.includes('OTHER')||segment.candidates.includes('OTHER')?'功能描述（OTHER 必填）':'补充原因（可选）',segment.reason,v=>{if(v)segment.reason=v;else delete segment.reason;save();});
   }
-  const subtypeActions=segment.actions.filter(k=>C.has(C.SUBTYPES,k));
+  const subtypes=C.subtypesFor(state.package.protocol_version);
+  const subtypeActions=segment.actions.filter(k=>C.has(subtypes,k));
   for(const action of subtypeActions) {
     const selected=typeof segment.subtype==='object'&&segment.subtype!==null?segment.subtype[action]:segment.subtype;
-    const input=select(box,action+' subtype（可选，留空为 null）',C.SUBTYPES[action].map(v=>[v,v]),selected,v=>{
+    const input=select(box,action+' subtype（可选，留空为 null）',subtypes[action].map(v=>[v,v]),selected,v=>{
       if(segment.actions.length>1) {const values=typeof segment.subtype==='object'&&segment.subtype!==null?{...segment.subtype}:{};if(v)values[action]=v;else delete values[action];segment.subtype=Object.keys(values).length?values:null;}
       else segment.subtype=v;save();
     });input.options[0].text='留空（null）';
   }
-  for(const key of Object.keys(C.FEATURES))renderModifier(box,segment,key);
+  for(const key of Object.keys(C.featuresFor(state.package.protocol_version)))renderModifier(box,segment,key);
+  if(state.package.protocol_version==='rcpem-public-pilot-v1.2')renderModifier(box,segment,'self_disclosure',true);
   button('对此片段提出边界异议',()=>{record.s.segment_objections.push({segment_id:segment.id,problem:null,proposal:'',reason_code:'boundary'});save();renderEvent();},box);parent.append(box);
 }
 function renderObjections(parent,record) {
@@ -541,16 +663,24 @@ function renderEvent() {
   const parent=$('event-view');parent.replaceChildren();const event=state.package.events[current],record=state.records[event.event_id];
   const info=el('section');info.append(el('h2',event.event_id+' · '+event.sample_role));info.append(el('p','材料引用：'+event.material_ref,'muted'));
   messages(info,'上下文 x',event.context);messages(info,'对方话轮 x',event.partner);renderExposure(info,event);parent.append(info);
+  if(state.package.stage==='g_only') {renderG(parent,event,record);updateProgress();return;}
   if(state.package.stage==='fg_stage1') {
     renderUnits(info,event,record);renderF1(parent,event,record);renderG(parent,event,record);
     if(!state.stage2){updateProgress();return;}
   }
   const target=(state.stage2||state.package).events.find(e=>e.event_id===event.event_id);
+  const selfSegmentation=!!(state.stage2||state.package).self_segmentation;
+  if(selfSegmentation && record.s.segmentation_source!=='self') {renderDiagnosis(parent,target,record,true);updateProgress();return;}
   if(target.segmentation_diagnosis&&!C.has(record.s,'free_segmentation')) {renderDiagnosis(parent,target,record);updateProgress();return;}
   const reply=el('section');messages(reply,'完整目标回复',target.reply);
   if(target.segmentation_diagnosis)reply.append(el('p','独立切分已锁定（内部边界 '+record.s.free_segmentation.length+' 个）。以下按冻结预切标注。','tag'));parent.append(reply);
   if(state.stage2)renderF2(parent,event,record);
-  const heading=el('section');heading.append(el('h2','S · 冻结功能片段'),el('p','四个特征均须显式选择；present 拖选证据，unclear 填短原因。偏移由工具记录。','muted'));parent.append(heading);
+  const heading=el('section');heading.append(el('h2',selfSegmentation?'S · 自己切分的功能片段':'S · 冻结功能片段'),el('p',(state.package.protocol_version==='rcpem-public-pilot-v1.2'?'八个表达特征及内容属性均须显式选择；present 类取值拖选证据，unclear 填短原因。':'四个特征均须显式选择；present 拖选证据，unclear 填短原因。')+'偏移由工具记录。','muted'));
+  if(selfSegmentation) button('重新切分',()=>{
+    if(!confirm('重新切分会清空本事件已标的全部 S 内容，确认继续？'))return;
+    C.resetSelfSegmentation(record,target,state.package.protocol_version);save();renderEvent();
+  },heading);
+  parent.append(heading);
   for(const segment of record.s.segments)renderSegment(parent,segment,record);renderObjections(parent,record);updateProgress();
 }
 function fileJSON(input,callback) {
